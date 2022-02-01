@@ -158,7 +158,7 @@ jobs:
         tags: |
           type=schedule
           type=raw,value=${{ steps.image-meta.outputs.tag }}
-          type=semver,pattern={{version}},value=${{ steps.image-meta.outputs.dot-version }}
+          type=semver,pattern={{version}},value=${{ steps.image-meta.outputs.tag }}
         # Note, the {{major}}, {{major}}.{{minor}} patterns only work on git tags
 
     - name: Build image
