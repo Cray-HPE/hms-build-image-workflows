@@ -193,6 +193,10 @@ Requirements:
 - Makefile is present in the root of the repository.
 - The Makefile has the `unittest` target defined to run the repositories unit tests.
 
+The update PR with comment job is composed of mostly 3rd part Github Actions
+- 3rd party Github Actions:
+  - [actions/checkout@v2](https://github.com/actions/checkout/tree/v2)
+
 ### Workflow inputs
 | Name      | Data Type | Required Field | Default value   | Description
 | --------- | --------- | -------------- | --------------- | -----------
@@ -226,6 +230,11 @@ The run integration test workflow is designed to execute integration tests withi
 Requirements:
 - Makefile is present in the root of the repository.
 - The Makefile has the `integration` target defined to run the repositories unit tests.
+
+
+The update PR with comment job is composed of mostly 3rd part Github Actions
+- 3rd party Github Actions:
+  - [actions/checkout@v2](https://github.com/actions/checkout/tree/v2)
 
 ### Workflow inputs
 | Name      | Data Type | Required Field | Default value   | Description
