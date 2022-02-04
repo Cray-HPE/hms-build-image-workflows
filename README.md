@@ -56,7 +56,7 @@ The build and release job performs the following high level actions:
 3. Push container image into correct location within Artifactory (either to stable or unstable)
 4. Create Software Bill of Materials (SBOM) using Syft.
 
-The build and release job is composed of various 3rd party and internally Github Actions.
+The build and release job is composed of various 3rd party and internally developed Github Actions.
 - Internally developed Github Actions:
   - [Cray-HPE/hms-build-metadata-action/generate-build-metadata@v1](https://github.com/Cray-HPE/hms-build-metadata-action/tree/v1/generate-build-metadata)
   - [Cray-HPE/.github/actions/csm-sign-image@v2.0-csm-sign-image](https://github.com/Cray-HPE/.github/tree/main/actions/csm-sign-image)
@@ -105,7 +105,7 @@ The update PR with comment job is composed of mostly 3rd part Github Actions
 ### Full example
 Sample build and publish docker images workflow (`.github/workflows/build_and_release_image.yaml`) in use by the [hms-power-control repository](https://github.com/Cray-HPE/hms-power-control/blob/develop/.github/workflows/build_and_release_image.yaml). 
 
-**IMPORTANT** when creating or migrating a repository to use this workflow make sure that the value for `.jobs.build_and_release.with.image-name` is set to the desired image name for the repository.
+**IMPORTANT** when creating or migrating a repository to use this workflow make sure that the value for `.jobs.build_and_release.with.image-name` is set to the desired image name for the container registry.
 ```yaml
 name: Build and Publish Docker Images
 on:
@@ -193,7 +193,7 @@ Requirements:
 - Makefile is present in the root of the repository.
 - The Makefile has the `unittest` target defined to run the repositories unit tests.
 
-The update PR with comment job is composed of mostly 3rd part Github Actions
+The update PR with comment job is composed of mostly 3rd party Github Actions
 - 3rd party Github Actions:
   - [actions/checkout@v2](https://github.com/actions/checkout/tree/v2)
 
