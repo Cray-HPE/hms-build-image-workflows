@@ -22,7 +22,7 @@ The hms-build-image-workflows repository contains Github Action workflows to fac
 
 ![](docs/build_and_release_image/overall_workflow_execution.svg)
 
-The build and release image workflow located at `.github/workflows/build_and_release_image.yaml` in this repository will build container image from a Dockerfile and publish and sign the artifact in Artifactory. 
+The build and release image workflow located at `.github/workflows/build_and_release_image.yaml` in this repository will build container image from a Dockerfile and publish and sign the artifact in Artifactory.  Stable artifacts are produced when a commit is tagged. For all other pushes or PRs an unstable artifact is produced.
 
 The workflow is composed to two jobs. 
 1. The [Build and release job](#build-and-release-image-workflow) publishes and signs artifacts in Artifactory.
