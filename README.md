@@ -6,6 +6,7 @@ Table of contents
     - [Workflow Inputs](#workflow-inputs)
     - [Build and release job](#build-and-release-job)
     - [Update PR with comment job](#update-pr-with-comment-job)
+    - [Full example](#full-example)
   - [Run unit test workflow](#run-unit-test-workflow)
     - [Workflow inputs](#workflow-inputs-1)
   - [Run integration test workflow](#run-integration-test-workflow)
@@ -13,9 +14,17 @@ Table of contents
   - [Release model](#release-model)
 
 
+The hms-build-image-workflows repository contains Github Action workflows to facilitate the process of building container images and running unit and integration tests from HMS repositories.
+
 ## Build and release image workflow
 
 ![](docs/build_and_release_image/overall_workflow_execution.svg)
+
+The build and release image workflow located at `.github/workflows/build_and_release_image.yaml` will build container image from a Dockerfile and publish and sign the artifact in Artifactory. 
+
+The workflow is composed to two jobs. 
+1. The [Build and release job](#build-and-release-image-workflow) publishes and signs artifacts in Artifactory.
+2. The [Update PR with comment job](#update-pr-with-comment-job) will run if the workflow was triggered from PR event, and will create or update a comment on the PR with links to artifacts produced by the workflow run.
 
 ### Workflow Inputs
 | Name                | Data Type | Required Field | Default value             | Description
@@ -34,10 +43,13 @@ Table of contents
 
 ![](docs/build_and_release_image/build_and_release_job.svg)
 
+
+
 ### Update PR with comment job
 
 ![](docs/build_and_release_image/update_pr_with_artifacts_job.svg)
 
+### Full example
 
 ## Run unit test workflow
 
