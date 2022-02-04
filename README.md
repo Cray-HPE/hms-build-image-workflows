@@ -103,7 +103,7 @@ The update PR with comment job is composed of mostly 3rd part Github Actions
   - [peter-evans/create-or-update-comment@v1](https://github.com/peter-evans/create-or-update-comment/tree/v1)
 
 ### Full example
-Sample build and publish docker images workflow (`.github/workflows/build_and_release_image.yaml`) in used by the [hms-power-control repository](https://github.com/Cray-HPE/hms-power-control/blob/develop/.github/workflows/build_and_release_image.yaml). 
+Sample build and publish docker images workflow (`.github/workflows/build_and_release_image.yaml`) in use by the [hms-power-control repository](https://github.com/Cray-HPE/hms-power-control/blob/develop/.github/workflows/build_and_release_image.yaml). 
 
 **IMPORTANT** when creating or migrating a repository to use this workflow make sure that the value for `.jobs.build_and_release.with.image-name` is set to the desired image name for the repository.
 ```yaml
@@ -204,7 +204,7 @@ The update PR with comment job is composed of mostly 3rd part Github Actions
 
 ### Full example
 
-Sample run unit tests workflow (`.github/workflows/run_unit_test.yaml`) in used by the [hms-power-control repository](https://github.com/Cray-HPE/hms-power-control/blob/develop/.github/workflows/run_unit_test.yaml).
+Sample run unit tests workflow (`.github/workflows/run_unit_test.yaml`) in use by the [hms-power-control repository](https://github.com/Cray-HPE/hms-power-control/blob/develop/.github/workflows/run_unit_test.yaml).
 ```yaml
 name: Run Unit Tests
 on: [push, pull_request, workflow_dispatch]
@@ -241,7 +241,7 @@ The update PR with comment job is composed of mostly 3rd part Github Actions
 | `runs-on` | `string`  | Optional       | `ubuntu-latest` | The type of machine to run the job on.
 
 ### Full example
-Sample run unit tests workflow (`.github/workflows/run_integration_test.yaml`) in used by the [hms-power-control repository](https://github.com/Cray-HPE/hms-power-control/blob/develop/.github/workflows/run_integration_test.yaml).
+Sample run unit tests workflow (`.github/workflows/run_integration_test.yaml`) in use by the [hms-power-control repository](https://github.com/Cray-HPE/hms-power-control/blob/develop/.github/workflows/run_integration_test.yaml).
 ```yaml
 name: Run Integration Tests
 on: [pull_request, workflow_dispatch]
