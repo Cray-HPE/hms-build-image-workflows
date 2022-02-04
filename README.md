@@ -22,7 +22,7 @@ The hms-build-image-workflows repository contains Github Action workflows to fac
 
 ![](docs/build_and_release_image/overall_workflow_execution.svg)
 
-The build and release image workflow located at `.github/workflows/build_and_release_image.yaml` will build container image from a Dockerfile and publish and sign the artifact in Artifactory. 
+The build and release image workflow located at `.github/workflows/build_and_release_image.yaml` in this repository will build container image from a Dockerfile and publish and sign the artifact in Artifactory. 
 
 The workflow is composed to two jobs. 
 1. The [Build and release job](#build-and-release-image-workflow) publishes and signs artifacts in Artifactory.
@@ -187,7 +187,7 @@ This results in a PR comment that looks like:
 
 ![](docs/run_unit_test/run_unit_tests_job.svg)
 
-The run unit test workflow is designed to execute unit tests withing a Github repository. This effectively runs `make unittest` in the root of the repository. 
+The run unit test workflow `.github/workflows/run_unit_test.yaml` in this repository is designed to execute unit tests within a Github repository. This effectively runs `make unittest` in the root of the repository. 
 
 Requirements:
 - Makefile is present in the root of the repository.
@@ -225,12 +225,11 @@ unittest:
 
 ![](docs/run_integration_test/run_integration_tests_job.svg)
 
-The run integration test workflow is designed to execute integration tests withing a Github repository. This effectively runs `make integration` in the root of the repository. 
+The run unit test workflow `.github/workflows/run_integration_test.yaml` in this repository is designed to execute unit tests within a Github repository. This effectively runs `make integration` in the root of the repository. 
 
 Requirements:
 - Makefile is present in the root of the repository.
 - The Makefile has the `integration` target defined to run the repositories unit tests.
-
 
 The update PR with comment job is composed of mostly 3rd part Github Actions
 - 3rd party Github Actions:
