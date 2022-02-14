@@ -287,7 +287,7 @@ jobs:
 
       - name: Render template
         id: template
-        uses: chuhlomin/render-template@v1.2
+        uses: chuhlomin/render-template@v1
         with:
           # It is expected the that the build-image-comment-template.md is present in the application repo, not this one.
           template: ${{ inputs.pr-comment-template-path }}
