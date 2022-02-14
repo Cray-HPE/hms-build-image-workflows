@@ -17,13 +17,11 @@ on:
         description: Container image name. For example, cray-firmware-action
         type: string
         required: true
-
       docker-build-context:
         description: Build's context is the set of files located in the specified PATH.
         type: string
         default: "."
         required: false
-
       docker-build-file:
         description: Path to the Dockerfile.
         type: string
@@ -177,8 +175,8 @@ jobs:
       uses: docker/build-push-action@v2
       id: docker-build
       with:
-        context: ${{ .inputs.docker-build-context }}
-        file: ${{ .inputs.docker-build-file }}
+        context: ${{ inputs.docker-build-context }}
+        file: ${{ inputs.docker-build-file }}
         load: true
         push: false
         tags: ${{ steps.meta.outputs.tags }}
