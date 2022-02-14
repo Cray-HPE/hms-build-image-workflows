@@ -14,5 +14,7 @@ jobs:
         shell: bash
         run: |
           echo "::add-matcher::.github/actionlint-matcher.json"
-          ${{ steps.get_actionlint.outputs.executable }} -color
+
+          # Disable shellcheck for now, as environment variables provided via the env: block are not detected and the SC2153 warning isu issued.
+          ${{ steps.get_actionlint.outputs.executable }} -color --shellcheck="" 
   
