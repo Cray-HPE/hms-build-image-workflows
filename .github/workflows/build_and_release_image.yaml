@@ -270,7 +270,7 @@ jobs:
       - name: Create comment vars
         id: comment-vars
         run: |
-          echo ::set-output name=repo_name::$(echo ${GITHUB_ACTOR}_${GITHUB_REPOSITORY}_${GITHUB_REF_NAME} | sed 's|/|_|g')
+          echo "::set-output name=repo_name::$(echo "${GITHUB_ACTOR}_${GITHUB_REPOSITORY}_${GITHUB_REF_NAME}" | sed 's|/|_|g')"
 
       - name: Find Comment
         uses: peter-evans/find-comment@v1
