@@ -76,7 +76,7 @@ The build and release job is composed of various 3rd party and internally develo
 
 ![](docs/build_and_release_image/update_pr_with_artifacts_job.svg)
 
-The update PR with comment job only runs if the build and release workflow was triggered from a PR (include draft PRs), otherwise it is skipped. This purpose of job is to make it easy to easily identify artifacts that were produced from the PR build run. With information to easily:
+The update PR with comment job only runs if the build and release workflow was triggered from a PR (include draft PRs), otherwise it is skipped. The purpose of this job is to make it easy to easily identify artifacts that were produced from the PR build run. With information to easily:
 - Identify the image location with Artifactory.
 - Steps to load the container images easily onto development systems.
 - Retrieve the generated SBOM in SPDX format of the built container image.
