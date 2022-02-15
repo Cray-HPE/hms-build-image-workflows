@@ -7,6 +7,10 @@ Table of contents
     - [Build and release job](#build-and-release-job)
     - [Update PR with comment job](#update-pr-with-comment-job)
     - [Full example](#full-example)
+      - [Workflow to build image with standard Dockerfile name and build context.](#workflow-to-build-image-with-standard-dockerfile-name-and-build-context)
+      - [Workflow to build image with non-standard Dockerfile name](#workflow-to-build-image-with-non-standard-dockerfile-name)
+      - [Workflow to build image with non-standard build context](#workflow-to-build-image-with-non-standard-build-context)
+      - [PR Comment Template](#pr-comment-template)
   - [Run unit test workflow](#run-unit-test-workflow)
     - [Workflow inputs](#workflow-inputs-1)
     - [Full example](#full-example-1)
@@ -33,17 +37,19 @@ Repository requirements:
 * If `enable-pr-comment` is set to True, then it is expected that PR comment template is located at `.github/build-image-comment-template.md` within the repo.
 
 ### Workflow Inputs
-| Name                | Data Type | Required Field | Default value             | Description
-| ------------------- | --------- | -------------- | ------------------------- | -----------
-| `runs-on`           | `string`  | Optional       | `ubuntu-latest`           | The type of machine to run the job on.
-| `docker-registry`   | `string`  | Optional       | `artifactory.algol60.net` | Registry to publish container images to.
-| `image-name`        | `string`  | Required       |                           | Container image name. For example, cray-firmware-action
-| `enable-latest-tag` | `string`  | Optional       | `False`                   | Enable the latest tag for stable builds. Choose from true or false
-| `snyk-severity`     | `string`  | Optional       | `high`                    | Only report vulnerabilities of provided level or higher. Choose from: low, medium, high, or critical
-| `trivy-enable`      | `string`  | Optional       | `False`                   | Enable or disable the Trivy Vulnerability scanner. Choose from true or false
-| `trivy-exit-code`   | `string`  | Optional       | `0`                       | Exit code when vulnerabilities were found
-| `trivy-severity`    | `string`  | Optional       | `CRITICAL,HIGH`           | Severities of vulnerabilities to be displayed
-| `enable-pr-comment` | `string`  | Optional       | `True`                    | Control whether the update-pr-with-artifacts job runs on PR builds. Choose from true or false
+| Name                   | Data Type | Required Field | Default value             | Description
+| ---------------------- | --------- | -------------- | ------------------------- | -----------
+| `runs-on`              | `string`  | Optional       | `ubuntu-latest`           | The type of machine to run the job on.
+| `image-name`           | `string`  | Required       |                           | Container image name. For example, cray-firmware-action
+| `docker-registry`      | `string`  | Optional       | `artifactory.algol60.net` | Registry to publish container images to.
+| `docker-build-context` | `string`  | Optional       | `.`                       | Build's context is the set of files located in the specified PATH.
+| `docker-build-file`    | `string`  | Optional       | `""`                      | Path to the Dockerfile. If set to the empty string it will default to `{docker-build-context}/Dockerfile`.
+| `enable-latest-tag`    | `string`  | Optional       | `False`                   | Enable the latest tag for stable builds. Choose from true or false
+| `snyk-severity`        | `string`  | Optional       | `high`                    | Only report vulnerabilities of provided level or higher. Choose from: low, medium, high, or critical
+| `trivy-enable`         | `string`  | Optional       | `False`                   | Enable or disable the Trivy Vulnerability scanner. Choose from true or false
+| `trivy-exit-code`      | `string`  | Optional       | `0`                       | Exit code when vulnerabilities were found
+| `trivy-severity`       | `string`  | Optional       | `CRITICAL,HIGH`           | Severities of vulnerabilities to be displayed
+| `enable-pr-comment`    | `string`  | Optional       | `True`                    | Control whether the update-pr-with-artifacts job runs on PR builds. Choose from true or false
 
 ### Build and release job
 
@@ -103,11 +109,12 @@ The update PR with comment job is composed of mostly 3rd part Github Actions
   - [peter-evans/create-or-update-comment@v1](https://github.com/peter-evans/create-or-update-comment/tree/v1)
 
 ### Full example
-Sample build and publish docker images workflow (`.github/workflows/build_and_release_image.yaml`) in use by the [hms-power-control repository](https://github.com/Cray-HPE/hms-power-control/blob/develop/.github/workflows/build_and_release_image.yaml). 
+#### Workflow to build image with standard Dockerfile name and build context.
+Sample build and publish docker image workflow (`.github/workflows/build_and_release_image.yaml`) in use by the [hms-power-control repository](https://github.com/Cray-HPE/hms-power-control/blob/develop/.github/workflows/build_and_release_image.yaml). This assumes the Dockerfile is in the root of the repository, with the name `Dockerfile`.
 
 **IMPORTANT** when creating or migrating a repository to use this workflow make sure that the value for `.jobs.build_and_release.with.image-name` is set to the desired image name for the container registry.
 ```yaml
-name: Build and Publish Docker Images
+name: Build and Publish Docker Image # Consider changing the workflow name to make it distinguishable from other flows.
 on:
   - push # Perform a build of the contents from the branch
   - pull_request # Perform a build after merging with the target branch
@@ -127,6 +134,59 @@ jobs:
       cosign-key: ${{ secrets.COSIGN_KEY }}
 ```
 
+#### Workflow to build image with non-standard Dockerfile name
+Sample build and publish docker image workflow to build a Dockerfile with a non-standard name. The example below will use the Dockerfile named `Dockerfile.hms-pytest` inside of the root of the repository.
+
+**IMPORTANT** when creating or migrating a repository to use this workflow make sure that the value for `.jobs.build_and_release.with.image-name` is set to the desired image name for the container registry.
+```yaml
+name: Build and Publish Docker Image # Consider changing the workflow name to make it distinguishable from other flows.
+on:
+  - push # Perform a build of the contents from the branch
+  - pull_request # Perform a build after merging with the target branch
+  - workflow_dispatch
+jobs:
+  build_and_release:
+    uses: Cray-HPE/hms-build-image-workflows/.github/workflows/build_and_release_image.yaml@v1
+    with:
+      image-name: hms-pytest # Adjust this to match the container image 
+      docker-build-file: Dockerfile.hms-pytest # Adjust this to match the desired Dockerfile name
+      enable-pr-comment: true
+    secrets:
+      artifactory-username: ${{ secrets.ARTIFACTORY_ALGOL60_USERNAME }}
+      artifactory-token: ${{ secrets.ARTIFACTORY_ALGOL60_TOKEN }}
+      snyk-token: ${{ secrets.SNYK_TOKEN }}
+      cosign-gcp-project-id: ${{ secrets.COSIGN_GCP_PROJECT_ID }}
+      cosign-gcp-sa-key:  ${{ secrets.COSIGN_GCP_SA_KEY }}
+      cosign-key: ${{ secrets.COSIGN_KEY }} 
+```
+
+#### Workflow to build image with non-standard build context
+Sample build and publish docker image workflow to build a Dockerfile with a non-standard build context. The example below will use the Dockerfile named `Dockerfile` inside of the directory `tests/ct`.
+
+**IMPORTANT** when creating or migrating a repository to use this workflow make sure that the value for `.jobs.build_and_release.with.image-name` is set to the desired image name for the container registry.
+```yaml
+name: Build and Publish Docker Image # Consider changing the workflow name to make it distinguishable from other flows.
+on:
+  - push # Perform a build of the contents from the branch
+  - pull_request # Perform a build after merging with the target branch
+  - workflow_dispatch
+jobs:
+  build_and_release:
+    uses: Cray-HPE/hms-build-image-workflows/.github/workflows/build_and_release_image.yaml@v1
+    with:
+      image-name: cray-power-control-test # Adjust this to match the container image 
+      docker-build-context: tests/ct # Adjust this to match the desired Docker build context
+      enable-pr-comment: true
+    secrets:
+      artifactory-username: ${{ secrets.ARTIFACTORY_ALGOL60_USERNAME }}
+      artifactory-token: ${{ secrets.ARTIFACTORY_ALGOL60_TOKEN }}
+      snyk-token: ${{ secrets.SNYK_TOKEN }}
+      cosign-gcp-project-id: ${{ secrets.COSIGN_GCP_PROJECT_ID }}
+      cosign-gcp-sa-key:  ${{ secrets.COSIGN_GCP_SA_KEY }}
+      cosign-key: ${{ secrets.COSIGN_KEY }} 
+```
+
+#### PR Comment Template
 Sample PR comment template (`.github/build-image-comment-template.md`) in use by the [hms-power-control repository](https://github.com/Cray-HPE/hms-power-control/blob/develop/.github/build-image-comment-template.md).
 ````markdown
 <!-- This file is templated with https://pkg.go.dev/html/template -->
