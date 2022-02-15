@@ -19,28 +19,23 @@
 # OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
 # ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 # OTHER DEALINGS IN THE SOFTWARE.
-name: Run Integration Tests
-on: 
-  workflow_call:
-    inputs:
-      runs-on:
-        description: The type of machine to run the job on.
-        type: string
-        required: false
-        default: ubuntu-latest
+name: Lint GitHub Actions workflows
+on: [push, pull_request]
+
 jobs:
-  run_integration_test:
-
-    name: Run Integration Tests
-    runs-on: ${{ inputs.runs-on }}
+  actionlint:
+    runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v2
-        with:
-          fetch-depth: 0
-
-      - name: Run Integration Test
+      - uses: actions/checkout@v2
+      - name: Download actionlint
+        id: get_actionlint
+        shell: bash
+        run: bash <(curl https://raw.githubusercontent.com/rhysd/actionlint/main/scripts/download-actionlint.bash)
+      - name: Check workflow files
         shell: bash
         run: |
-          sudo apt-get install make
-          make integration
+          echo "::add-matcher::.github/actionlint-matcher.json"
+
+          # Disable shellcheck for now, as environment variables provided via the env: block are not detected and the SC2153 warning isu issued.
+          ${{ steps.get_actionlint.outputs.executable }} -color --shellcheck="" 
+  
