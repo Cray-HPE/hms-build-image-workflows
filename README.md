@@ -17,6 +17,9 @@ Table of contents
   - [Run integration test workflow](#run-integration-test-workflow)
     - [Workflow inputs](#workflow-inputs-2)
     - [Full example](#full-example-2)
+  - [Run ct test workflow](#run-ct-test-workflow)
+    - [Workflow inputs](#workflow-inputs-3)
+    - [Full example](#full-example-3)
   - [Release model](#release-model)
 
 
