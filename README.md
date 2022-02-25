@@ -318,6 +318,44 @@ integration:
 	./runIntegration.sh
 ```
 
+## Run ct test workflow
+
+![](docs/run_ct_test/run_ct_tests_job.svg)
+
+The run ct test workflow `.github/workflows/run_ct_test.yaml` in this repository is designed to execute unit tests within a Github repository. This effectively runs `make ct` in the root of the repository. 
+
+Requirements:
+- Makefile is present in the root of the repository.
+- The Makefile has the `ct` target defined to run the repositories unit tests.
+
+The update PR with comment job is composed of mostly 3rd party Github Actions
+- 3rd party Github Actions:
+  - [actions/checkout@v2](https://github.com/actions/checkout/tree/v2)
+
+### Workflow inputs
+| Name      | Data Type | Required Field | Default value   | Description
+| --------- | --------- | -------------- | --------------- | -----------
+| `runs-on` | `string`  | Optional       | `ubuntu-latest` | The type of machine to run the job on.
+
+### Full example
+
+Sample run unit tests workflow (`.github/workflows/run_unit_test.yaml`) in use by the [hms-firmware-action repository](https://github.com/Cray-HPE/hms-firmware-action/blob/master/.github/workflows/run_ct_test.yaml).
+```yaml
+name: Run CT Tests
+on: [push, pull_request, workflow_dispatch]
+jobs:
+  run_ct_test:
+    uses: Cray-HPE/hms-build-image-workflows/.github/workflows/run_ct_test.yaml@v1
+    with:
+      runs-on: ubuntu-latest
+```
+
+Sample Makefile target in use by the [hms-firmware-action repository](https://github.com/Cray-HPE/hms-firmware-action/blob/master/Makefile). The hms-firmware-action repository uses the `ct` target to run the `runCT.sh` script.
+```makefile
+ct:
+	./runCT.sh
+```
+
 ## Release model
 
 When you make changes you should tag the code branch with an vX.Y.Z semver and move/create the vX tag.
