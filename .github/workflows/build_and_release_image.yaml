@@ -170,17 +170,25 @@ jobs:
         TAG=$DOT_VERSION${{ steps.build-metadata.outputs.docker }}
         IMAGE=$REPOSITORY:$TAG
 
+        if [[ "$STABLE_STRING" == "stable" ]]; then
+          SEMVER=$DOT_VERSION
+        else
+          SEMVER=$TAG
+        fi
+
         echo "Stable string: $STABLE_STRING"
         echo "Container image repository: $REPOSITORY"
         echo "Container image tag: $TAG"
         echo "Container image: $IMAGE"
         echo ".version: $DOT_VERSION"
+        echo "SEMVER: $SEMVER"
 
         echo "::set-output name=stable-string::$STABLE_STRING"
         echo "::set-output name=repository::$REPOSITORY"
         echo "::set-output name=tag::$TAG"
         echo "::set-output name=image::$IMAGE"
         echo "::set-output name=dot-version::$DOT_VERSION"
+        echo "::set-output name=semver::$SEMVER"
 
     - name: Docker metadata
       id: meta
@@ -194,7 +202,7 @@ jobs:
         tags: |
           type=schedule
           type=raw,value=${{ steps.image-meta.outputs.tag }}
-          type=semver,pattern={{version}},value=${{ steps.image-meta.outputs.tag }}
+          type=semver,pattern={{version}},value=${{ steps.image-meta.outputs.semver }}
         # Note, the {{major}}, {{major}}.{{minor}} patterns only work on git tags
 
     - name: Build image
