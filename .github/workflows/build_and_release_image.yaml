@@ -128,6 +128,9 @@ jobs:
       image-tag: ${{ steps.image-meta.outputs.tag }}
       image-repository: ${{ steps.image-meta.outputs.repository }}
       all-image-tags: ${{ steps.meta.outputs.tags }}
+    permissions: # Required for google-github-actions/auth
+      contents: 'read'
+      id-token: 'write'
     steps:
     #
     # Setup build environment
@@ -256,7 +259,7 @@ jobs:
         done
 
     - name: Sign an image in artifactory
-      uses: Cray-HPE/.github/actions/csm-sign-image@v2.0-csm-sign-image
+      uses: Cray-HPE/.github/actions/csm-sign-image@v2-csm-sign-image
       with:
         cosign-gcp-project-id: ${{ secrets.cosign-gcp-project-id }}
         cosign-gcp-sa-key: ${{ secrets.cosign-gcp-sa-key }}
@@ -268,7 +271,7 @@ jobs:
         image: ${{ steps.image-meta.outputs.image }}
 
     - name: Generate, Attach, and Sign container image SBOM
-      uses: Cray-HPE/.github/actions/csm-generate-attach-sign-sbom@v1.0-csm-generate-attach-sign-sbom
+      uses: Cray-HPE/.github/actions/csm-generate-attach-sign-sbom@v1-csm-generate-attach-sign-sbom
       id: sbom
       with:
         cosign-gcp-project-id: ${{ secrets.cosign-gcp-project-id }}
