@@ -128,6 +128,9 @@ jobs:
       image-tag: ${{ steps.image-meta.outputs.tag }}
       image-repository: ${{ steps.image-meta.outputs.repository }}
       all-image-tags: ${{ steps.meta.outputs.tags }}
+    permissions: # Required for google-github-actions/auth
+      contents: 'read'
+      id-token: 'write'
     steps:
     #
     # Setup build environment
