@@ -1,0 +1,142 @@
+# MIT License
+
+# (C) Copyright [2022] Hewlett Packard Enterprise Development LP
+
+# Permission is hereby granted, free of charge, to any person obtaining a
+# copy of this software and associated documentation files (the "Software"),
+# to deal in the Software without restriction, including without limitation
+# the rights to use, copy, modify, merge, publish, distribute, sublicense,
+# and/or sell copies of the Software, and to permit persons to whom the
+# Software is furnished to do so, subject to the following conditions:
+
+# The above copyright notice and this permission notice shall be included
+# in all copies or substantial portions of the Software.
+
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+# THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR
+# OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
+# ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+# OTHER DEALINGS IN THE SOFTWARE.
+name: Run CT Tests
+on: 
+  workflow_call:
+    inputs:
+      runs-on:
+        description: The type of machine to run the job on.
+        type: string
+        required: false
+        default: ubuntu-latest
+      images-under-test:
+        description: |
+          Specify container images that are under test to override the default container image versions,
+          used by the hms-simulation-environment environment. 
+
+          This field is a JSON array of objects. Each array object contains a mapping of a container image 
+          (without a version tag) to the corresponding service defined in the hms-simulation-environment's
+          main docker-compose.yaml file: https://github.com/Cray-HPE/hms-simulation-environment/blob/v1/docker-compose.yaml
+
+          Example:
+          [
+            {
+              "ImageName": "cray-bss",
+              "DockerComposeServices": [
+                "cray-bss"
+              ]
+            }
+          ]
+        type: string
+        required: true
+jobs:
+  run_ct_test:
+
+    name: Run CT Tests
+    runs-on: ${{ inputs.runs-on }}
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+      with:
+        fetch-depth: 0
+    
+    - name: Checkout hms-simulation-environment
+      uses: actions/checkout@v2
+      with:
+        path: hms-simulation-environment
+        repository: Cray-HPE/hms-simulation-environment
+        ref: v1
+        fetch-depth: 0
+
+    - name: Build images under test
+      shell: bash
+      run: |
+        make image
+
+    - name: Update docker-compose file with images under test
+      shell: python
+      env:
+        IMAGES_UNDER_TEST: ${{ inputs.images-under-test }}
+      run: |
+        import os
+        import sys
+        import json
+        import subprocess
+
+        # Read in version from .version
+        version = None
+        with open('.version') as f:
+          version = f.readline().strip()
+
+        print('Version: ', version)
+
+        # Read in IMAGES_UNDER_TEST from the environment
+        images_under_test = json.loads(os.environ['IMAGES_UNDER_TEST'])
+
+        # Update docker-compose file for each service
+        for image_under_test in images_under_test:
+          for service in image_under_test["DockerComposeServices"]:
+            cmd = ['yq', '-i', 'e', f'.services.{service}.image = "{image_under_test["ImageName"]}:{version}"', './hms-simulation-environment/docker-compose.yaml']
+
+            print(f'Running command: {cmd}')
+            result = subprocess.run(cmd)
+            if result.returncode != 0:
+                sys.exit(1)
+
+    - name: Standup simulation environment
+      shell: bash
+      run: |
+        set -ex
+        cd hms-simulation-environment
+
+        # For debugging output the modified docker-compose compose file
+        echo "Updated docker-compose.yaml"
+        cat docker-compose.yaml
+
+        # Setup python virtual environment
+        ./setup_venv.sh
+        . ./venv/bin/activate
+        ./run.py configs/sls/small_mountain.json
+
+    - name: Run smoke tests
+      run: |
+        if [[ -f "runSmokeTestsWithSimulator.sh" ]]; then
+          ./runSmokeTestsWithSimulator.sh
+        else
+          echo "Skipping"
+        fi
+
+    - name: Load simulation for tavern tests
+      run: | 
+        if [[ -f "runTavernTestsLoadSimulator.sh" ]]; then
+          ./runTavernTestsLoadSimulator.sh
+        else
+          echo "Skipping"
+        fi
+    
+    - name: Run tavern tests
+      run: |
+        if [[ -f "runTavernTestsWithSimulator.sh" ]]; then
+          ./runTavernTestsWithSimulator.sh
+        else
+          echo "Skipping"
+        fi
