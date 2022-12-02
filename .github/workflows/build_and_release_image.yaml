@@ -310,7 +310,8 @@ jobs:
           imageName: ${{ inputs.image-name }}
           stableString: ${{ steps.image-meta.outputs.stable-string }}
           PRHeadSha: ${{ github.event.pull_request.head.sha }}
-          isPullRequest: false
+          isPullRequest: ${{ github.event_name == 'pull_request' }}
+          isPRComment: false
         result_path: ./job_summary.md
 
     - name: Job Summary
@@ -349,7 +350,7 @@ jobs:
             stableString: ${{ needs.build_and_release.outputs.stable-string }}
             PRHeadSha: ${{ github.event.pull_request.head.sha }}
             isPullRequest: true
-
+            isPRComment: true
       - name: Create comment
         if: steps.fc.outputs.comment-id == ''
         uses: peter-evans/create-or-update-comment@v2
