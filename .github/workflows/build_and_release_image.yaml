@@ -196,7 +196,7 @@ jobs:
 
     - name: Docker metadata
       id: meta
-      uses: docker/metadata-action@v3
+      uses: docker/metadata-action@v4
       with:
         images: ${{ steps.image-meta.outputs.repository }}
         labels: |
@@ -210,7 +210,7 @@ jobs:
         # Note, the {{major}}, {{major}}.{{minor}} patterns only work on git tags
 
     - name: Build image
-      uses: docker/build-push-action@v2
+      uses: docker/build-push-action@v3
       id: docker-build
       with:
         context: ${{ inputs.docker-build-context }}
