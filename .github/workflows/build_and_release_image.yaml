@@ -311,9 +311,10 @@ jobs:
           stableString: ${{ steps.image-meta.outputs.stable-string }}
           PRHeadSha: ${{ github.event.pull_request.head.sha }}
           isPullRequest: false
+        result_path: ./job_summary.md
 
     - name: Job Summary
-      run: echo '${{ steps.template.outputs.result }}' >> $GITHUB_STEP_SUMMARY
+      run: cat ./job_summary.md >> $GITHUB_STEP_SUMMARY
 
   update-pr-with-artifacts:
     name: Update PR comment with artifacts
