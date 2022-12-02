@@ -157,7 +157,7 @@ jobs:
     # Build, scan, push, and sign container image
     #
     - name: Generate build metadata
-      uses: Cray-HPE/hms-build-metadata-action/generate-build-metadata@v1
+      uses: Cray-HPE/hms-build-metadata-action/generate-build-metadata@CASMHMS-5597
       id: build-metadata
       with:
         stable-strategy: tag
