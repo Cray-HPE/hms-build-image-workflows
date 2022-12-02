@@ -260,7 +260,7 @@ jobs:
         done
 
     - name: Sign an image in artifactory
-      uses: Cray-HPE/.github/actions/csm-sign-image@v2-csm-sign-image
+      uses: Cray-HPE/.github/actions/csm-sign-image@CASMHMS-5597
       with:
         cosign-gcp-project-id: ${{ secrets.COSIGN_GCP_PROJECT_ID }}
         cosign-gcp-sa-key: ${{ secrets.COSIGN_GCP_SA_KEY }}
@@ -272,7 +272,7 @@ jobs:
         image: ${{ steps.image-meta.outputs.image }}
 
     - name: Generate, Attach, and Sign container image SBOM
-      uses: Cray-HPE/.github/actions/csm-generate-attach-sign-sbom@v1-csm-generate-attach-sign-sbom
+      uses: Cray-HPE/.github/actions/csm-generate-attach-sign-sbom@CASMHMS-5597
       id: sbom
       with:
         cosign-gcp-project-id: ${{ secrets.COSIGN_GCP_PROJECT_ID }}
