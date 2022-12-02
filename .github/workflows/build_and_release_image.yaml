@@ -315,7 +315,15 @@ jobs:
         result_path: ./job_summary.md
 
     - name: Job Summary
-      run: cat ./job_summary.md >> $GITHUB_STEP_SUMMARY
+      run: |
+        cat ./job_summary.md >> $GITHUB_STEP_SUMMARY
+
+
+        echo "File"
+        cat ./job_summary.md
+
+        echo "Output"
+        echo '${{ steps.template.outputs.result }}'
 
   update-pr-with-artifacts:
     name: Update PR comment with artifacts
