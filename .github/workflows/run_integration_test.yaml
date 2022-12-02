@@ -29,7 +29,13 @@ on:
         required: false
         default: ubuntu-latest
 
-    secrets: inherit
+    secrets:
+      ARTIFACTORY_ALGOL60_READONLY_USERNAME:
+        description: Artifactory readonly username used for docker pulls
+        required: true
+      ARTIFACTORY_ALGOL60_READONLY_TOKEN:
+        description: Artifactory token from the given user
+        required: true
 
 jobs:
   run_integration_test:

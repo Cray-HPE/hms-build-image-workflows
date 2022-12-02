@@ -97,7 +97,27 @@ on:
         default: .github/build-image-comment-template.md
         required: false
     
-    secrets: inherit
+    secrets:
+      ARTIFACTORY_ALGOL60_USERNAME:
+        description: Artifactory username used for docker pushes
+        required: true
+      ARTIFACTORY_ALGOL60_TOKEN:
+        description: Artifactory token from the given user
+        required: true
+
+      SNYK_TOKEN:
+        description: Snyk authorization token
+        required: true
+
+      COSIGN_GCP_PROJECT_ID:
+        description: Project ID in GCP for cosign
+        required: true
+      COSIGN_GCP_SA_KEY:
+        description: Service account key in GCP for cosign
+        required: true
+      COSIGN_KEY:
+        description: cosign key
+        required: true
 
 jobs:
   build_and_release:
@@ -167,12 +187,12 @@ jobs:
         echo ".version: $DOT_VERSION"
         echo "SEMVER: $SEMVER"
 
-        echo "::set-output name=stable-string::$STABLE_STRING"
-        echo "::set-output name=repository::$REPOSITORY"
-        echo "::set-output name=tag::$TAG"
-        echo "::set-output name=image::$IMAGE"
-        echo "::set-output name=dot-version::$DOT_VERSION"
-        echo "::set-output name=semver::$SEMVER"
+        echo "stable-string=$STABLE_STRING" >> $GITHUB_OUTPUT
+        echo "repository=$REPOSITORY" >> $GITHUB_OUTPUT
+        echo "tag=$TAG" >> $GITHUB_OUTPUT
+        echo "image=$IMAGE" >> $GITHUB_OUTPUT
+        echo "dot-version=$DOT_VERSION" >> $GITHUB_OUTPUT
+        echo "semver=$SEMVER" >> $GITHUB_OUTPUT
 
     - name: Docker metadata
       id: meta
@@ -288,7 +308,7 @@ jobs:
       - name: Create comment vars
         id: comment-vars
         run: |
-          echo "::set-output name=repo_name::$(echo "${GITHUB_ACTOR}_${GITHUB_REPOSITORY}_${GITHUB_REF_NAME}" | sed 's|/|_|g')"
+          echo "repo_name=$(echo "${GITHUB_ACTOR}_${GITHUB_REPOSITORY}_${GITHUB_REF_NAME}" | sed 's|/|_|g')" >> $GITHUB_OUTPUT
 
       - name: Find Comment
         uses: peter-evans/find-comment@v1
