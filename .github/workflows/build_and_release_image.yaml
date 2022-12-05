@@ -310,7 +310,7 @@ jobs:
           ```
 
         JOB_SUMMARY_TEMPLATE_PR: |
-          > *Note*: this SHA is the merge of ${{ github.event.pull_request.head.sha }} and the PR base branch. Good luck and make rocket go now! 🌮 🚀
+          *Note*: this SHA is the merge of ${{ github.event.pull_request.head.sha }} and the PR base branch. Good luck and make rocket go now! 🌮 🚀
         
         JOB_SUMMARY_TEMPLATE_PART_2: |
           ## Dev System Pull Script
@@ -320,14 +320,17 @@ jobs:
           ```bash
           #!/usr/bin/env bash
 
-          IMAGE=${{ steps.image-meta.outputs.image }}
-
+          export IMAGE=${{ steps.image-meta.outputs.image }}
+          
+          NEXUS_USERNAME="$(kubectl -n nexus get secret nexus-admin-credential -o json | jq -r '.data.username | @base64d')"
+          NEXUS_PASSWORD="$(kubectl -n nexus get secret nexus-admin-credential -o json | jq -r '.data.password | @base64d')"
+          
           podman run --rm --network host  \
               quay.io/skopeo/stable copy \
               --src-tls-verify=false \
               --dest-tls-verify=false \
-              --dest-username "$(kubectl -n nexus get secret nexus-admin-credential --template {{ .data.username }} | base64 -d)" \
-              --dest-password "$(kubectl -n nexus get secret nexus-admin-credential --template {{ .data.password }} | base64 -d)" \
+              --dest-username $NEXUS_USERNAME \
+              --dest-password $NEXUS_PASSWORD \
               docker://$IMAGE \
               docker://registry.local/$IMAGE
           ```
