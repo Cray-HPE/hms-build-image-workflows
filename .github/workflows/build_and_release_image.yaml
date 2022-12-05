@@ -295,28 +295,79 @@ jobs:
         done
         echo "Download SBOM: cosign download sbom $IMAGE > container_image.spdx"
 
-    - name: Render job summary template
-      id: template
-      uses: chuhlomin/render-template@v1.6
-      with:
-        # It is expected the that the build-image-comment-template.md is present in the application repo, not this one.
-        # For right now we are going to share the PR comment template with both the job summary and PR comment.
-        template: ${{ inputs.pr-comment-template-path }}
-        # Note the vars below cannot have dashes '-' in them
-        vars: |
-          image: ${{ steps.image-meta.outputs.image }}
-          imageTag: ${{ steps.image-meta.outputs.tag  }}
-          imageRepository: ${{ steps.image-meta.outputs.repository }} 
-          imageName: ${{ inputs.image-name }}
-          stableString: ${{ steps.image-meta.outputs.stable-string }}
-          PRHeadSha: ${{ github.event.pull_request.head.sha }}
-          isPullRequest: ${{ github.event_name == 'pull_request' }}
-          isPRComment: false
-        result_path: ./job_summary.md
+    - name: Create job summary template
+      env:
+        JOB_SUMMARY_TEMPLATE_PART_1: |
+          👋  Hey! Here is the image we built for you ([Artifactory Link](https://artifactory.algol60.net/ui/repos/tree/General/csm-docker%2F${{ steps.image-meta.outputs.stable-string }}%2F${{ inputs.image-name }}%2F${{ steps.image-meta.outputs.image }})):
 
-    - name: Write job Summary
-      run: |
-        cat ./job_summary.md >> $GITHUB_STEP_SUMMARY
+          ```bash
+          ${{ steps.image-meta.outputs.image }}
+          ```
+
+          Use podman or docker to pull it down and inspect locally:
+          ```bash
+          podman pull ${{ steps.image-meta.outputs.image }}
+          ```
+
+        JOB_SUMMARY_TEMPLATE_PR: |
+          > *Note*: this SHA is the merge of ${{ github.event.pull_request.head.sha }} and the PR base branch. Good luck and make rocket go now! 🌮 🚀
+        
+        JOB_SUMMARY_TEMPLATE_PART_2: |
+          ## Dev System Pull Script
+
+          > **Note** the following script only applies to systems running CSM 1.2 or later.
+
+          ```bash
+          #!/usr/bin/env bash
+
+          IMAGE=${{ steps.image-meta.outputs.image }}
+
+          podman run --rm --network host  \
+              quay.io/skopeo/stable copy \
+              --src-tls-verify=false \
+              --dest-tls-verify=false \
+              --dest-username "$(kubectl -n nexus get secret nexus-admin-credential --template {{.data.username{{"}}"}} | base64 -d)" \
+              --dest-password "$(kubectl -n nexus get secret nexus-admin-credential --template {{.data.password}} | base64 -d)" \
+              docker://$IMAGE \
+              docker://registry.local/$IMAGE
+          ```
+
+          ## Software Bill of Materials
+
+          ```bash
+          cosign download sbom ${{ steps.image-meta.outputs.image }} > container_image.spdx
+          ```
+
+          If you don't have cosign, then you can get it [here](https://github.com/sigstore/cosign#installation).
+      run:
+        echo "$JOB_SUMMARY_TEMPLATE_PART_1" >> $GITHUB_STEP_SUMMARY
+        if [[ "${{ github.event_name }}" == "pull_request" ]]; then
+          echo "$JOB_SUMMARY_TEMPLATE" >> $GITHUB_STEP_SUMMARY
+        fi
+        echo "$JOB_SUMMARY_TEMPLATE_PART_2" >> $GITHUB_STEP_SUMMARY
+
+    # - name: Render job summary template
+    #   id: template
+    #   uses: chuhlomin/render-template@v1.6
+    #   with:
+    #     # It is expected the that the build-image-comment-template.md is present in the application repo, not this one.
+    #     # For right now we are going to share the PR comment template with both the job summary and PR comment.
+    #     template: ${{ inputs.pr-comment-template-path }}
+    #     # Note the vars below cannot have dashes '-' in them
+    #     vars: |
+    #       image: ${{ steps.image-meta.outputs.image }}
+    #       imageTag: ${{ steps.image-meta.outputs.tag  }}
+    #       imageRepository: ${{ steps.image-meta.outputs.repository }} 
+    #       imageName: ${{ inputs.image-name }}
+    #       stableString: ${{ steps.image-meta.outputs.stable-string }}
+    #       PRHeadSha: ${{ github.event.pull_request.head.sha }}
+    #       isPullRequest: ${{ github.event_name == 'pull_request' }}
+    #       isPRComment: false
+    #     result_path: ./job_summary.md
+
+    # - name: Write job Summary
+    #   run: |
+        
 
 
   update-pr-with-artifacts:
