@@ -326,8 +326,8 @@ jobs:
               quay.io/skopeo/stable copy \
               --src-tls-verify=false \
               --dest-tls-verify=false \
-              --dest-username "$(kubectl -n nexus get secret nexus-admin-credential --template {{.data.username}} | base64 -d)" \
-              --dest-password "$(kubectl -n nexus get secret nexus-admin-credential --template {{.data.password}} | base64 -d)" \
+              --dest-username "$(kubectl -n nexus get secret nexus-admin-credential --template {{ .data.username }} | base64 -d)" \
+              --dest-password "$(kubectl -n nexus get secret nexus-admin-credential --template {{ .data.password }} | base64 -d)" \
               docker://$IMAGE \
               docker://registry.local/$IMAGE
           ```
