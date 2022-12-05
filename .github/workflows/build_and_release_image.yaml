@@ -298,7 +298,7 @@ jobs:
     - name: Create job summary template
       env:
         JOB_SUMMARY_TEMPLATE_PART_1: |
-          👋  Hey! Here is the image we built for you ([Artifactory Link](https://artifactory.algol60.net/ui/repos/tree/General/csm-docker%2F${{ steps.image-meta.outputs.stable-string }}%2F${{ inputs.image-name }}%2F${{ steps.image-meta.outputs.image }})):
+          👋  Hey! Here is the image we built for you ([Artifactory Link](https://artifactory.algol60.net/ui/repos/tree/General/csm-docker/${{ steps.image-meta.outputs.stable-string }}/${{ inputs.image-name }}/${{ steps.image-meta.outputs.tag }})):
 
           ```bash
           ${{ steps.image-meta.outputs.image }}
@@ -326,7 +326,7 @@ jobs:
               quay.io/skopeo/stable copy \
               --src-tls-verify=false \
               --dest-tls-verify=false \
-              --dest-username "$(kubectl -n nexus get secret nexus-admin-credential --template {{.data.username{{"}}"}} | base64 -d)" \
+              --dest-username "$(kubectl -n nexus get secret nexus-admin-credential --template {{.data.username}} | base64 -d)" \
               --dest-password "$(kubectl -n nexus get secret nexus-admin-credential --template {{.data.password}} | base64 -d)" \
               docker://$IMAGE \
               docker://registry.local/$IMAGE
@@ -345,30 +345,6 @@ jobs:
           echo "$JOB_SUMMARY_TEMPLATE" >> $GITHUB_STEP_SUMMARY
         fi
         echo "$JOB_SUMMARY_TEMPLATE_PART_2" >> $GITHUB_STEP_SUMMARY
-
-    # - name: Render job summary template
-    #   id: template
-    #   uses: chuhlomin/render-template@v1.6
-    #   with:
-    #     # It is expected the that the build-image-comment-template.md is present in the application repo, not this one.
-    #     # For right now we are going to share the PR comment template with both the job summary and PR comment.
-    #     template: ${{ inputs.pr-comment-template-path }}
-    #     # Note the vars below cannot have dashes '-' in them
-    #     vars: |
-    #       image: ${{ steps.image-meta.outputs.image }}
-    #       imageTag: ${{ steps.image-meta.outputs.tag  }}
-    #       imageRepository: ${{ steps.image-meta.outputs.repository }} 
-    #       imageName: ${{ inputs.image-name }}
-    #       stableString: ${{ steps.image-meta.outputs.stable-string }}
-    #       PRHeadSha: ${{ github.event.pull_request.head.sha }}
-    #       isPullRequest: ${{ github.event_name == 'pull_request' }}
-    #       isPRComment: false
-    #     result_path: ./job_summary.md
-
-    # - name: Write job Summary
-    #   run: |
-        
-
 
   update-pr-with-artifacts:
     name: Update PR comment with artifacts
