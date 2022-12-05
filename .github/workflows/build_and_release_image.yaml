@@ -339,7 +339,7 @@ jobs:
           ```
 
           If you don't have cosign, then you can get it [here](https://github.com/sigstore/cosign#installation).
-      run:
+      run: |
         echo "$JOB_SUMMARY_TEMPLATE_PART_1" >> $GITHUB_STEP_SUMMARY
         if [[ "${{ github.event_name }}" == "pull_request" ]]; then
           echo "$JOB_SUMMARY_TEMPLATE" >> $GITHUB_STEP_SUMMARY
