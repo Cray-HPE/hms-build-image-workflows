@@ -329,8 +329,7 @@ jobs:
               quay.io/skopeo/stable copy \
               --src-tls-verify=false \
               --dest-tls-verify=false \
-              --dest-username=$NEXUS_USERNAME \
-              --dest-password=$NEXUS_PASSWORD \
+              --dest-username=$NEXUS_USERNAME --dest-password $NEXUS_PASSWORD \
               docker://$IMAGE \
               docker://registry.local/$IMAGE
           ```
