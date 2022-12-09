@@ -91,18 +91,129 @@ on:
         type: string
         default: true
         required: false
-      pr-comment-template-path:
-        description: File path for the template for the PR comment template. It is expected the that the comment template is present in the application repo, not this one.
+      pr-comment-template:
+        description: PR comment template
         type: string
-        default: .github/build-image-comment-template.md
         required: false
+        default: |
+          <!-- This file is templated with https://pkg.go.dev/html/template -->
+          👋  Hey! Here is the image we built for you ([Artifactory Link](https://artifactory.algol60.net/ui/repos/tree/General/csm-docker%2F{{ .stableString }}%2F{{ .imageName }}%2F{{ .imageTag }})):
+
+          ```bash
+          {{ .image }}
+          ```
+
+          Use podman or docker to pull it down and inspect locally:
+
+          ```bash
+          podman pull {{ .image }}
+          ```
+
+          Or, use this script to pull the image from the build server to a dev system:
+
+          <details>
+          <summary>Dev System Pull Script</summary>
+          <br />
+
+          > **Note** the following script only applies to systems running CSM 1.2 or later.
+
+          ```bash
+          #!/usr/bin/env bash
+
+          IMAGE={{ .image }}
+          
+          podman run --rm --network host  \
+              quay.io/skopeo/stable copy \
+              --src-tls-verify=false \
+              --dest-tls-verify=false \
+              --dest-username "$(kubectl -n nexus get secret nexus-admin-credential -o json | jq -r '.data.username | @base64d')" \
+              --dest-password "$(kubectl -n nexus get secret nexus-admin-credential -o json | jq -r '.data.password | @base64d')" \
+              docker://$IMAGE \
+              docker://registry.local/$IMAGE
+          ```
+          </details>
+
+          <details>
+          <summary>Snyk Report</summary>
+          <br />
+
+          _Coming soon_
+
+          </details>
+
+          <details>
+          <summary>Software Bill of Materials</summary>
+          <br />
+
+          ```bash
+          cosign download sbom {{ .image }} > container_image.spdx
+          ```
+
+          If you don't have cosign, then you can get it [here](https://github.com/sigstore/cosign#installation).
+          </details>
+
+          *Note*: this SHA is the merge of {{ .PRHeadSha }} and the PR base branch. Good luck and make rocket go now! 🌮 🚀
+
+      job-summary-template:
+        description: Job summary template
+        type: string
+        default: |
+          <!-- This file is templated with https://pkg.go.dev/html/template -->
+          👋  Hey! Here is the image we built for you ([Artifactory Link](https://artifactory.algol60.net/ui/repos/tree/General/csm-docker%2F{{ .stableString }}%2F{{ .imageName }}%2F{{ .imageTag }})):
+
+          ```bash
+          {{ .image }}
+          ```
+
+          Use podman or docker to pull it down and inspect locally:
+
+          ```bash
+          podman pull {{ .image }}
+          ```
+
+          {{ if .isPullRequest }}
+          *Note*: this SHA is the merge of {{ .PRHeadSha }} and the PR base branch. Good luck and make rocket go now! 🌮 🚀
+          {{ end }}
+
+          ## Dev System Pull Script
+          Or, use this script to pull the image from the build server to a dev system:
+
+          > **Note** the following script only applies to systems running CSM 1.2 or later.
+
+          ```bash
+          #!/usr/bin/env bash
+
+          IMAGE={{ .image }}
+
+          WORD="word"
+          podman run --rm --network host  \
+              quay.io/skopeo/stable copy \
+              --src-tls-verify=false \
+              --dest-tls-verify=false \
+              --dest-username "$(kubectl -n nexus get secret nexus-admin-credential -o json | jq -r '.data.username | @base64d')" \
+              --dest-pass$WORD "$(kubectl -n nexus get secret nexus-admin-credential -o json | jq -r '.data.password | @base64d')" \
+              docker://$IMAGE \
+              docker://registry.local/$IMAGE
+          ```
+
+          ## Snyk Report</summary>
+
+          _Coming soon_
+
+          ## Software Bill of Materials
+
+          ```bash
+          cosign download sbom {{ .image }} > container_image.spdx
+          ```
+
+          If you don't have cosign, then you can get it [here](https://github.com/sigstore/cosign#installation).
     
     secrets:
       ARTIFACTORY_ALGOL60_USERNAME:
         description: Artifactory username used for docker pushes
         required: true
       ARTIFACTORY_ALGOL60_TOKEN:
-        description: Artifactory token from the given user
+        description: Artifactory token for the given user
         required: true
 
       SNYK_TOKEN:
@@ -295,58 +406,37 @@ jobs:
         done
         echo "Download SBOM: cosign download sbom $IMAGE > container_image.spdx"
 
-    - name: Create job summary template
+    - name: Job summary prep
+      shell: bash
       env:
-        JOB_SUMMARY_TEMPLATE_PART_1: |
-          👋  Hey! Here is the image we built for you ([Artifactory Link](https://artifactory.algol60.net/ui/repos/tree/General/csm-docker/${{ steps.image-meta.outputs.stable-string }}/${{ inputs.image-name }}/${{ steps.image-meta.outputs.tag }})):
-
-          ```bash
-          ${{ steps.image-meta.outputs.image }}
-          ```
-
-          Use podman or docker to pull it down and inspect locally:
-          ```bash
-          podman pull ${{ steps.image-meta.outputs.image }}
-          ```
-
-        JOB_SUMMARY_TEMPLATE_PR: |
-          *Note*: this SHA is the merge of ${{ github.event.pull_request.head.sha }} and the PR base branch. Good luck and make rocket go now! 🌮 🚀
-        
-        JOB_SUMMARY_TEMPLATE_PART_2: |
-          ## Dev System Pull Script
-
-          > **Note** the following script only applies to systems running CSM 1.2 or later.
-
-          ```bash
-          #!/usr/bin/env bash
-
-          export IMAGE=${{ steps.image-meta.outputs.image }}
-          
-          NEXUS_USERNAME="$(kubectl -n nexus get secret nexus-admin-credential -o json | jq -r '.data.username | @base64d')"
-          NEXUS_PASSWORD="$(kubectl -n nexus get secret nexus-admin-credential -o json | jq -r '.data.password | @base64d')"
-          
-          podman run --rm --network host  \
-              quay.io/skopeo/stable copy \
-              --src-tls-verify=false \
-              --dest-tls-verify=false \
-              --dest-username=$NEXUS_USERNAME --dest-password $NEXUS_PASSWORD \
-              docker://$IMAGE \
-              docker://registry.local/$IMAGE
-          ```
-
-          ## Software Bill of Materials
-
-          ```bash
-          cosign download sbom ${{ steps.image-meta.outputs.image }} > container_image.spdx
-          ```
-
-          If you don't have cosign, then you can get it [here](https://github.com/sigstore/cosign#installation).
+        JOB_SUMMARY_TEMPLATE: ${{ inputs.job-summary-template }}
       run: |
-        printenv JOB_SUMMARY_TEMPLATE_PART_1 >> $GITHUB_STEP_SUMMARY
-        if [[ "${{ github.event_name }}" == "pull_request" ]]; then
-          printenv JOB_SUMMARY_TEMPLATE_PR >> $GITHUB_STEP_SUMMARY
-        fi
-        printenv JOB_SUMMARY_TEMPLATE_PART_2 >> $GITHUB_STEP_SUMMARY
+        mkdir -p ./temp
+
+        # Write out the job summary template to a file
+        printenv JOB_SUMMARY_TEMPLATE > ./temp/job_summary_template.md
+
+    - name: Render Job summary
+      id: template
+      uses: chuhlomin/render-template@v1.6
+      with:
+        template: ./temp/job_summary_template.md
+        # Note the vars below cannot have dashes '-' in them
+        vars: |
+            image: ${{ steps.image-meta.outputs.image }}
+            imageTag: ${{ steps.image-meta.outputs.tag }}
+            imageRepository: ${{ steps.image-meta.outputs.repository }} 
+            imageName: ${{ inputs.image-name }}
+            stableString: ${{ steps.image-meta.outputs.stable-string  }}
+
+            PRHeadSha: ${{ github.event.pull_request.head.sha }}
+            isPullRequest: ${{ github.event_name == 'pull_request' }}
+        result_path: ./temp/job_summary.md
+
+    - name: Set job summary
+      shell: bash
+      run: |
+        cat ./temp/job_summary.md >> $GITHUB_STEP_SUMMARY
 
   update-pr-with-artifacts:
     name: Update PR comment with artifacts
@@ -355,8 +445,13 @@ jobs:
     needs:
       - build_and_release
     steps:
-      - name: Checkout repo
-        uses: actions/checkout@v3
+      - name: PR comment prep
+        shell: bash
+        env:
+          PR_COMMENT_TEMPLATE: ${{ inputs.pr-comment-template }}
+        run: |
+          # Write out the job summary template to a file
+          printenv PR_COMMENT_TEMPLATE > ./pr_comment_template.md
       
       - name: Find Comment
         uses: peter-evans/find-comment@v2
@@ -370,8 +465,7 @@ jobs:
         id: template
         uses: chuhlomin/render-template@v1.6
         with:
-          # It is expected the that the build-image-comment-template.md is present in the application repo, not this one.
-          template: ${{ inputs.pr-comment-template-path }}
+          template: ./pr_comment_template.md
           # Note the vars below cannot have dashes '-' in them
           vars: |
             image: ${{ needs.build_and_release.outputs.image }}
@@ -380,8 +474,6 @@ jobs:
             imageName: ${{ inputs.image-name }}
             stableString: ${{ needs.build_and_release.outputs.stable-string }}
             PRHeadSha: ${{ github.event.pull_request.head.sha }}
-            isPullRequest: true
-            isPRComment: true
       - name: Create comment
         if: steps.fc.outputs.comment-id == ''
         uses: peter-evans/create-or-update-comment@v2
