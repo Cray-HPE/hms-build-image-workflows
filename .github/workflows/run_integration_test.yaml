@@ -34,7 +34,7 @@ on:
         description: Artifactory readonly username used for docker pulls
         required: true
       ARTIFACTORY_ALGOL60_READONLY_TOKEN:
-        description: Artifactory token from the given user
+        description: Artifactory token for the given user
         required: true
 
 jobs:
