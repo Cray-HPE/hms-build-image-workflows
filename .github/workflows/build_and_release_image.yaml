@@ -175,6 +175,13 @@ on:
           *Note*: this SHA is the merge of {{ .PRHeadSha }} and the PR base branch. Good luck and make rocket go now! 🌮 🚀
           {{ end }}
 
+          {{ if ne (len .dockerMeta.tags ) 0 }}
+          The docker image is also available under the following images tags:
+          {{- range $imageTag := .dockerMeta.tags  }}
+          * `{{ $imageTag }}` | 
+          {{- end }}
+          {{ end }}
+
           ## Dev System Pull Script
           Or, use this script to pull the image from the build server to a dev system:
 
@@ -183,17 +190,24 @@ on:
           ```bash
           #!/usr/bin/env bash
 
-          IMAGE={{ .image }}
+          IMAGES=(
+            {{- range $imageTag := .dockerMeta.tags  }}
+            {{ $imageTag }}
+            {{- end }}
+          )
 
-          WORD="word"
-          podman run --rm --network host  \
-              quay.io/skopeo/stable copy \
-              --src-tls-verify=false \
-              --dest-tls-verify=false \
-              --dest-username "$(kubectl -n nexus get secret nexus-admin-credential -o json | jq -r '.data.username | @base64d')" \
-              --dest-pass$WORD "$(kubectl -n nexus get secret nexus-admin-credential -o json | jq -r '.data.password | @base64d')" \
-              docker://$IMAGE \
-              docker://registry.local/$IMAGE
+          for IMAGE in ${IMAGES[@]}; do 
+            echo "Syncing $IMAGE"
+            WORD="word"
+            podman run --rm --network host  \
+                quay.io/skopeo/stable copy \
+                --src-tls-verify=false \
+                --dest-tls-verify=false \
+                --dest-username "$(kubectl -n nexus get secret nexus-admin-credential -o json | jq -r '.data.username | @base64d')" \
+                --dest-pass$WORD "$(kubectl -n nexus get secret nexus-admin-credential -o json | jq -r '.data.password | @base64d')" \
+                docker://$IMAGE \
+                docker://registry.local/$IMAGE
+          done
           ```
 
           ## Snyk Report</summary>
@@ -410,11 +424,16 @@ jobs:
       shell: bash
       env:
         JOB_SUMMARY_TEMPLATE: ${{ inputs.job-summary-template }}
+        DOCKER_META_JSON: ${{ steps.meta.outputs.json }}
       run: |
         mkdir -p ./temp
 
         # Write out the job summary template to a file
         printenv JOB_SUMMARY_TEMPLATE > ./temp/job_summary_template.md
+
+        # Convert the output of the docker meta action to yaml to make it work easier with the render-template action.
+        printenv DOCKER_META_JSON | yq '{"dockerMeta": .}' -P > ./temp/job_summary_vars.yaml
+
 
     - name: Render Job summary
       id: template
@@ -431,6 +450,7 @@ jobs:
 
             PRHeadSha: ${{ github.event.pull_request.head.sha }}
             isPullRequest: ${{ github.event_name == 'pull_request' }}
+        vars_path: ./temp/job_summary_vars.yaml
         result_path: ./temp/job_summary.md
 
     - name: Set job summary
