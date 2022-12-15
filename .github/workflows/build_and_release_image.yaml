@@ -181,14 +181,18 @@ on:
           ```bash
           #!/usr/bin/env bash
 
-          IMAGES=(
+          IMAGES=$(cat << EOF
             {{- range $imageTag := .dockerMeta.tags  }}
             {{ $imageTag }}
             {{- end }}
+          EOF
           )
 
-          for IMAGE in ${IMAGES[@]}; do 
+          for IMAGE in $IMAGES; do 
             echo "Syncing $IMAGE"
+            # Github masks the CLI flag that provides the password to sync to registry.local, since it is detecting "password" 
+            # This script does not contain any hard coded credentials, just the command to retrieve them if you have the 
+            # appropriate permissions.
             WORD="word"
             podman run --rm --network host  \
                 quay.io/skopeo/stable copy \
