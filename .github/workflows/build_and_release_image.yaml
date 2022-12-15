@@ -161,25 +161,15 @@ on:
           <!-- This file is templated with https://pkg.go.dev/html/template -->
           👋  Hey! Here is the image we built for you ([Artifactory Link](https://artifactory.algol60.net/ui/repos/tree/General/csm-docker%2F{{ .stableString }}%2F{{ .imageName }}%2F{{ .imageTag }})):
 
-          ```bash
-          {{ .image }}
-          ```
+          | Image | Software Bill of Materials |
+          {{- range $image := .dockerMeta.tags  }}
+          | `{{ $image }}` |`cosign download sbom {{ $image }} > container_image.spdx` |
+          {{- end }}
 
-          Use podman or docker to pull it down and inspect locally:
-
-          ```bash
-          podman pull {{ .image }}
-          ```
+          If you don't have cosign, then you can get it [here](https://github.com/sigstore/cosign#installation).
 
           {{ if .isPullRequest }}
           *Note*: this SHA is the merge of {{ .PRHeadSha }} and the PR base branch. Good luck and make rocket go now! 🌮 🚀
-          {{ end }}
-
-          {{ if ne (len .dockerMeta.tags ) 0 }}
-          The docker image is also available under the following images tags:
-          {{- range $imageTag := .dockerMeta.tags  }}
-          * `{{ $imageTag }}` | 
-          {{- end }}
           {{ end }}
 
           ## Dev System Pull Script
@@ -209,18 +199,6 @@ on:
                 docker://registry.local/$IMAGE
           done
           ```
-
-          ## Snyk Report</summary>
-
-          _Coming soon_
-
-          ## Software Bill of Materials
-
-          ```bash
-          cosign download sbom {{ .image }} > container_image.spdx
-          ```
-
-          If you don't have cosign, then you can get it [here](https://github.com/sigstore/cosign#installation).
     
     secrets:
       ARTIFACTORY_ALGOL60_USERNAME:
@@ -282,7 +260,7 @@ jobs:
     # Build, scan, push, and sign container image
     #
     - name: Generate build metadata
-      uses: Cray-HPE/hms-build-metadata-action/generate-build-metadata@CASMHMS-5597
+      uses: Cray-HPE/hms-build-metadata-action/generate-build-metadata@v1
       id: build-metadata
       with:
         stable-strategy: tag
@@ -385,7 +363,7 @@ jobs:
         done
 
     - name: Sign an image in artifactory
-      uses: Cray-HPE/.github/actions/csm-sign-image@CASMHMS-5597
+      uses: Cray-HPE/.github/actions/csm-sign-image@v2-csm-sign-image
       with:
         cosign-gcp-project-id: ${{ secrets.COSIGN_GCP_PROJECT_ID }}
         cosign-gcp-sa-key: ${{ secrets.COSIGN_GCP_SA_KEY }}
@@ -397,7 +375,7 @@ jobs:
         image: ${{ steps.image-meta.outputs.image }}
 
     - name: Generate, Attach, and Sign container image SBOM
-      uses: Cray-HPE/.github/actions/csm-generate-attach-sign-sbom@CASMHMS-5597
+      uses: Cray-HPE/.github/actions/csm-generate-attach-sign-sbom@v1-csm-generate-attach-sign-sbom
       id: sbom
       with:
         cosign-gcp-project-id: ${{ secrets.COSIGN_GCP_PROJECT_ID }}
