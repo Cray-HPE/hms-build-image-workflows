@@ -162,6 +162,7 @@ on:
           👋  Hey! Here is the image we built for you ([Artifactory Link](https://artifactory.algol60.net/ui/repos/tree/General/csm-docker%2F{{ .stableString }}%2F{{ .imageName }}%2F{{ .imageTag }})):
 
           | Image | Software Bill of Materials |
+          | ----- | -------------------------- |
           {{- range $image := .dockerMeta.tags  }}
           | `{{ $image }}` |`cosign download sbom {{ $image }} > container_image.spdx` |
           {{- end }}
