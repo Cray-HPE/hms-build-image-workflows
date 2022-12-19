@@ -4,21 +4,24 @@ Table of contents
 - [hms-build-image-workflows](#hms-build-image-workflows)
   - [Build and release image workflow](#build-and-release-image-workflow)
     - [Workflow Inputs](#workflow-inputs)
+    - [Workflow secrets](#workflow-secrets)
     - [Build and release job](#build-and-release-job)
     - [Update PR with comment job](#update-pr-with-comment-job)
     - [Full example](#full-example)
       - [Workflow to build image with standard Dockerfile name and build context.](#workflow-to-build-image-with-standard-dockerfile-name-and-build-context)
       - [Workflow to build image with non-standard Dockerfile name](#workflow-to-build-image-with-non-standard-dockerfile-name)
       - [Workflow to build image with non-standard build context](#workflow-to-build-image-with-non-standard-build-context)
-      - [PR Comment Template](#pr-comment-template)
   - [Run unit test workflow](#run-unit-test-workflow)
     - [Workflow inputs](#workflow-inputs-1)
+    - [Workflow secrets](#workflow-secrets-1)
     - [Full example](#full-example-1)
   - [Run integration test workflow](#run-integration-test-workflow)
     - [Workflow inputs](#workflow-inputs-2)
+    - [Workflow secrets](#workflow-secrets-2)
     - [Full example](#full-example-2)
   - [Run ct test workflow](#run-ct-test-workflow)
     - [Workflow inputs](#workflow-inputs-3)
+    - [Workflow secrets](#workflow-secrets-3)
     - [Full example](#full-example-3)
   - [Release model](#release-model)
 
@@ -54,6 +57,17 @@ Repository requirements:
 | `trivy-severity`       | `string`  | Optional       | `CRITICAL,HIGH`           | Severities of vulnerabilities to be displayed
 | `enable-pr-comment`    | `string`  | Optional       | `True`                    | Control whether the update-pr-with-artifacts job runs on PR builds. Choose from true or false
 
+### Workflow secrets
+
+| Name                                          | Required Field | Description 
+| --------------------------------------------- | -------------- | ----------- 
+| `SNYK_TOKEN`                                  | Required       | Snyk authorization token.
+| `ARTIFACTORY_ALGOL60_USERNAME`                | Required       | Artifactory username used to pull and push container images.
+| `ARTIFACTORY_ALGOL60_TOKEN`                   | Required       | Artifactory token used to pull and push container images.
+| `COSIGN_GCP_PROJECT_ID`                       | Required       | Project ID in GCP for cosign
+| `COSIGN_GCP_SA_KEY`                           | Required       | Service account key in GCP for cosign
+| `COSIGN_KEY`                                  | Required       | Cosign key
+
 ### Build and release job
 
 ![](docs/build_and_release_image/build_and_release_job.svg)
@@ -72,13 +86,13 @@ The build and release job is composed of various 3rd party and internally develo
   - [Cray-HPE/.github/actions/csm-generate-attach-sign-sbom@v1.0-csm-generate-attach-sign-sbom](https://github.com/Cray-HPE/.github/tree/main/actions/csm-generate-attach-sign-sbom)
 
 - 3rd party Github Actions:
-  - [actions/checkout@v2](https://github.com/actions/checkout/tree/v2)
+  - [actions/checkout@v3](https://github.com/actions/checkout/tree/v3)
   - [aquasecurity/trivy-action@master](https://github.com/aquasecurity/trivy-action)
-  - [docker/build-push-action@v2](https://github.com/docker/build-push-action/tree/v2)
-  - [docker/login-action@v1](https://github.com/docker/login-action/tree/v1)
-  - [docker/metadata-action@v3](https://github.com/docker/metadata-action/tree/v3)
-  - [docker/setup-buildx-action@v1](https://github.com/docker/setup-buildx-action/tree/v1)
-  - [docker/setup-qemu-action@v1](https://github.com/docker/setup-qemu-action/tree/v1)
+  - [docker/build-push-action@v3](https://github.com/docker/build-push-action/tree/v3)
+  - [docker/login-action@v2](https://github.com/docker/login-action/tree/v2)
+  - [docker/metadata-action@v4](https://github.com/docker/metadata-action/tree/v4)
+  - [docker/setup-buildx-action@v2](https://github.com/docker/setup-buildx-action/tree/v2)
+  - [docker/setup-qemu-action@v2](https://github.com/docker/setup-qemu-action/tree/v2)
   - [snyk/actions/docker@master](https://github.com/snyk/actions/tree/master/docker)
 
 ### Update PR with comment job
@@ -128,13 +142,7 @@ jobs:
     with:
       image-name: cray-power-control # This is the only field that needs to be changed
       enable-pr-comment: true
-    secrets:
-      artifactory-username: ${{ secrets.ARTIFACTORY_ALGOL60_USERNAME }}
-      artifactory-token: ${{ secrets.ARTIFACTORY_ALGOL60_TOKEN }}
-      snyk-token: ${{ secrets.SNYK_TOKEN }}
-      cosign-gcp-project-id: ${{ secrets.COSIGN_GCP_PROJECT_ID }}
-      cosign-gcp-sa-key:  ${{ secrets.COSIGN_GCP_SA_KEY }}
-      cosign-key: ${{ secrets.COSIGN_KEY }}
+    secrets: inherit
 ```
 
 #### Workflow to build image with non-standard Dockerfile name
@@ -154,13 +162,7 @@ jobs:
       image-name: hms-pytest # Adjust this to match the container image 
       docker-build-file: Dockerfile.hms-pytest # Adjust this to match the desired Dockerfile name
       enable-pr-comment: true
-    secrets:
-      artifactory-username: ${{ secrets.ARTIFACTORY_ALGOL60_USERNAME }}
-      artifactory-token: ${{ secrets.ARTIFACTORY_ALGOL60_TOKEN }}
-      snyk-token: ${{ secrets.SNYK_TOKEN }}
-      cosign-gcp-project-id: ${{ secrets.COSIGN_GCP_PROJECT_ID }}
-      cosign-gcp-sa-key:  ${{ secrets.COSIGN_GCP_SA_KEY }}
-      cosign-key: ${{ secrets.COSIGN_KEY }} 
+    secrets: inherit
 ```
 
 #### Workflow to build image with non-standard build context
@@ -180,71 +182,8 @@ jobs:
       image-name: cray-power-control-test # Adjust this to match the container image 
       docker-build-context: tests/ct # Adjust this to match the desired Docker build context
       enable-pr-comment: true
-    secrets:
-      artifactory-username: ${{ secrets.ARTIFACTORY_ALGOL60_USERNAME }}
-      artifactory-token: ${{ secrets.ARTIFACTORY_ALGOL60_TOKEN }}
-      snyk-token: ${{ secrets.SNYK_TOKEN }}
-      cosign-gcp-project-id: ${{ secrets.COSIGN_GCP_PROJECT_ID }}
-      cosign-gcp-sa-key:  ${{ secrets.COSIGN_GCP_SA_KEY }}
-      cosign-key: ${{ secrets.COSIGN_KEY }} 
+    secrets: inherit
 ```
-
-#### PR Comment Template
-Sample PR comment template (`.github/build-image-comment-template.md`) in use by the [hms-power-control repository](https://github.com/Cray-HPE/hms-power-control/blob/develop/.github/build-image-comment-template.md).
-````markdown
-<!-- This file is templated with https://pkg.go.dev/html/template -->
-👋  Hey! Here is the image we built for you ([Artifactory Link](https://artifactory.algol60.net/ui/repos/tree/General/csm-docker%2F{{ .stableString }}%2F{{ .imageName }}%2F{{ .imageTag }})):
-
-```bash
-{{ .image }}
-```
-
-Use podman or docker to pull it down and inspect locally:
-
-```bash
-podman pull {{ .image }}
-```
-
-Or, use this script to pull the image from the build server to a dev system:
-
-<details>
-<summary>Dev System Pull Script</summary>
-<br />
-
-> **Note** the following script only applies to systems running CSM 1.2 or later.
-```bash
-#!/usr/bin/env bash
-export REMOTE_IMAGE={{ .image }}
-export LOCAL_IMAGE={{ .imageName }}:{{ .imageTag }}
-skopeo copy --dest-tls-verify=false docker://${REMOTE_IMAGE} docker://registry.local/csm-docker/stable/${LOCAL_IMAGE}
-```
-</details>
-
-<details>
-<summary>Snyk Report</summary>
-<br />
-
-_Coming soon_
-
-</details>
-
-<details>
-<summary>Software Bill of Materials</summary>
-<br />
-
-```bash
-cosign download sbom {{ .image }} > container_image.spdx
-```
-
-If you don't have cosign, then you can get it [here](https://github.com/sigstore/cosign#installation).
-</details>
-
-*Note*: this SHA is the merge of {{ .PRHeadSha }} and the PR base branch. Good luck and make rocket go now! 🌮 🚀
-````
-
-This results in a PR comment that looks like:
-![](./docs/build_and_release_image/pr_comment_example.png)
-
 
 ## Run unit test workflow
 
@@ -258,12 +197,19 @@ Requirements:
 
 The update PR with comment job is composed of mostly 3rd party Github Actions
 - 3rd party Github Actions:
-  - [actions/checkout@v2](https://github.com/actions/checkout/tree/v2)
+  - [actions/checkout@v3](https://github.com/actions/checkout/tree/v3)
 
 ### Workflow inputs
 | Name      | Data Type | Required Field | Default value   | Description
 | --------- | --------- | -------------- | --------------- | -----------
 | `runs-on` | `string`  | Optional       | `ubuntu-latest` | The type of machine to run the job on.
+
+### Workflow secrets
+
+| Name                                          | Required Field | Description 
+| --------------------------------------------- | -------------- | ----------- 
+| `ARTIFACTORY_ALGOL60_READONLY_USERNAME`       | Required       | Artifactory readonly username used to download helm charts. Note these credentials are not used to upload artifacts to artifactory.
+| `ARTIFACTORY_ALGOL60_READONLY_TOKEN`          | Required       | Artifactory readonly token for the given user to download helm charts. Note these credentials are not used to upload artifacts to artifactory.
 
 ### Full example
 
@@ -296,12 +242,19 @@ Requirements:
 
 The update PR with comment job is composed of mostly 3rd part Github Actions
 - 3rd party Github Actions:
-  - [actions/checkout@v2](https://github.com/actions/checkout/tree/v2)
+  - [actions/checkout@v3](https://github.com/actions/checkout/tree/v3)
 
 ### Workflow inputs
 | Name      | Data Type | Required Field | Default value   | Description
 | --------- | --------- | -------------- | --------------- | -----------
 | `runs-on` | `string`  | Optional       | `ubuntu-latest` | The type of machine to run the job on.
+
+### Workflow secrets
+
+| Name                                          | Required Field | Description 
+| --------------------------------------------- | -------------- | ----------- 
+| `ARTIFACTORY_ALGOL60_READONLY_USERNAME`       | Required       | Artifactory readonly username used to download helm charts. Note these credentials are not used to upload artifacts to artifactory.
+| `ARTIFACTORY_ALGOL60_READONLY_TOKEN`          | Required       | Artifactory readonly token for the given user to download helm charts. Note these credentials are not used to upload artifacts to artifactory.
 
 ### Full example
 Sample run unit tests workflow (`.github/workflows/run_integration_test.yaml`) in use by the [hms-power-control repository](https://github.com/Cray-HPE/hms-power-control/blob/develop/.github/workflows/run_integration_test.yaml).
@@ -313,6 +266,7 @@ jobs:
     uses: Cray-HPE/hms-build-image-workflows/.github/workflows/run_integration_test.yaml@v1
     with:
       runs-on: ubuntu-latest
+    secrets: inherit
 ```
 
 Sample Makefile target in use by the [hms-power-control repository](https://github.com/Cray-HPE/hms-power-control/blob/develop/Makefile). The hms-power-control repository uses the `integration` target to run the `runIntegration.sh` script.
@@ -333,12 +287,19 @@ Requirements:
 
 The update PR with comment job is composed of mostly 3rd party Github Actions
 - 3rd party Github Actions:
-  - [actions/checkout@v2](https://github.com/actions/checkout/tree/v2)
+  - [actions/checkout@v3](https://github.com/actions/checkout/tree/v3)
 
 ### Workflow inputs
 | Name      | Data Type | Required Field | Default value   | Description
 | --------- | --------- | -------------- | --------------- | -----------
 | `runs-on` | `string`  | Optional       | `ubuntu-latest` | The type of machine to run the job on.
+
+### Workflow secrets
+
+| Name                                          | Required Field | Description 
+| --------------------------------------------- | -------------- | ----------- 
+| `ARTIFACTORY_ALGOL60_READONLY_USERNAME`       | Required       | Artifactory readonly username used to download helm charts. Note these credentials are not used to upload artifacts to artifactory.
+| `ARTIFACTORY_ALGOL60_READONLY_TOKEN`          | Required       | Artifactory readonly token for the given user to download helm charts. Note these credentials are not used to upload artifacts to artifactory.
 
 ### Full example
 
@@ -351,6 +312,7 @@ jobs:
     uses: Cray-HPE/hms-build-image-workflows/.github/workflows/run_ct_test.yaml@v1
     with:
       runs-on: ubuntu-latest
+    secrets: inherit
 ```
 
 Sample Makefile target in use by the [hms-firmware-action repository](https://github.com/Cray-HPE/hms-firmware-action/blob/master/Makefile). The hms-firmware-action repository uses the `ct` target to run the `runCT.sh` script.
