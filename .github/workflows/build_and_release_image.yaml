@@ -91,33 +91,142 @@ on:
         type: string
         default: true
         required: false
-      pr-comment-template-path:
-        description: File path for the template for the PR comment template. It is expected the that the comment template is present in the application repo, not this one.
+      pr-comment-template:
+        description: PR comment template
         type: string
-        default: .github/build-image-comment-template.md
         required: false
+        default: |
+          <!-- This file is templated with https://pkg.go.dev/html/template -->
+          👋  Hey! Here is the image we built for you ([Artifactory Link](https://artifactory.algol60.net/ui/repos/tree/General/csm-docker%2F{{ .stableString }}%2F{{ .imageName }}%2F{{ .imageTag }})):
+
+          ```bash
+          {{ .image }}
+          ```
+
+          Use podman or docker to pull it down and inspect locally:
+
+          ```bash
+          podman pull {{ .image }}
+          ```
+
+          Or, use this script to pull the image from the build server to a dev system:
+
+          <details>
+          <summary>Dev System Pull Script</summary>
+          <br />
+
+          > **Note** the following script only applies to systems running CSM 1.2 or later.
+
+          ```bash
+          #!/usr/bin/env bash
+
+          IMAGE={{ .image }}
+          
+          podman run --rm --network host  \
+              quay.io/skopeo/stable copy \
+              --src-tls-verify=false \
+              --dest-tls-verify=false \
+              --dest-username "$(kubectl -n nexus get secret nexus-admin-credential -o json | jq -r '.data.username | @base64d')" \
+              --dest-password "$(kubectl -n nexus get secret nexus-admin-credential -o json | jq -r '.data.password | @base64d')" \
+              docker://$IMAGE \
+              docker://registry.local/$IMAGE
+          ```
+          </details>
+
+          <details>
+          <summary>Snyk Report</summary>
+          <br />
+
+          _Coming soon_
+
+          </details>
+
+          <details>
+          <summary>Software Bill of Materials</summary>
+          <br />
+
+          ```bash
+          cosign download sbom {{ .image }} > container_image.spdx
+          ```
+
+          If you don't have cosign, then you can get it [here](https://github.com/sigstore/cosign#installation).
+          </details>
+
+          *Note*: this SHA is the merge of {{ .PRHeadSha }} and the PR base branch. Good luck and make rocket go now! 🌮 🚀
+
+      job-summary-template:
+        description: Job summary template
+        type: string
+        default: |
+          <!-- This file is templated with https://pkg.go.dev/html/template -->
+          👋  Hey! Here is the image we built for you ([Artifactory Link](https://artifactory.algol60.net/ui/repos/tree/General/csm-docker%2F{{ .stableString }}%2F{{ .imageName }}%2F{{ .imageTag }})):
+
+          | Image | Software Bill of Materials |
+          | ----- | -------------------------- |
+          {{- range $image := .dockerMeta.tags  }}
+          | `{{ $image }}` |`cosign download sbom {{ $image }} > container_image.spdx` |
+          {{- end }}
+
+          If you don't have cosign, then you can get it [here](https://github.com/sigstore/cosign#installation).
+
+          {{ if .isPullRequest }}
+          *Note*: this SHA is the merge of {{ .PRHeadSha }} and the PR base branch. Good luck and make rocket go now! 🌮 🚀
+          {{ end }}
+
+          ## Dev System Pull Script
+          Or, use this script to pull the image from the build server to a dev system:
+
+          > **Note** the following script only applies to systems running CSM 1.2 or later.
+
+          ```bash
+          #!/usr/bin/env bash
+
+          IMAGES=$(cat << EOF
+            {{- range $imageTag := .dockerMeta.tags  }}
+            {{ $imageTag }}
+            {{- end }}
+          EOF
+          )
+
+          for IMAGE in $IMAGES; do 
+            echo "Syncing $IMAGE"
+            # Github masks the CLI flag that provides the password to sync to registry.local, since it is detecting "password" 
+            # This script does not contain any hard coded credentials, just the command to retrieve them if you have the 
+            # appropriate permissions.
+            WORD="word"
+            podman run --rm --network host  \
+                quay.io/skopeo/stable copy \
+                --src-tls-verify=false \
+                --dest-tls-verify=false \
+                --dest-username "$(kubectl -n nexus get secret nexus-admin-credential -o json | jq -r '.data.username | @base64d')" \
+                --dest-pass$WORD "$(kubectl -n nexus get secret nexus-admin-credential -o json | jq -r '.data.password | @base64d')" \
+                docker://$IMAGE \
+                docker://registry.local/$IMAGE
+          done
+          ```
     
     secrets:
-      artifactory-username:
+      ARTIFACTORY_ALGOL60_USERNAME:
         description: Artifactory username used for docker pushes
         required: true
-      artifactory-token:
-        description: Artifactory token from the given user
+      ARTIFACTORY_ALGOL60_TOKEN:
+        description: Artifactory token for the given user
         required: true
-      
-      snyk-token:
+
+      SNYK_TOKEN:
         description: Snyk authorization token
         required: true
-      
-      cosign-gcp-project-id:
+
+      COSIGN_GCP_PROJECT_ID:
         description: Project ID in GCP for cosign
         required: true
-      cosign-gcp-sa-key:
+      COSIGN_GCP_SA_KEY:
         description: Service account key in GCP for cosign
         required: true
-      cosign-key:
+      COSIGN_KEY:
         description: cosign key
         required: true
+
 jobs:
   build_and_release:
     name: Build and Publish Docker images
@@ -136,21 +245,21 @@ jobs:
     # Setup build environment
     #
     - name: Checkout
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
       with:
         fetch-depth: 0
     - name: Set up QEMU
-      uses: docker/setup-qemu-action@v1
+      uses: docker/setup-qemu-action@v2
 
     - name: Set up Docker Buildx
-      uses: docker/setup-buildx-action@v1
+      uses: docker/setup-buildx-action@v2
 
     - name: Login to algol60 Container Registry
-      uses: docker/login-action@v1
+      uses: docker/login-action@v2
       with:
         registry: ${{ inputs.docker-registry }}
-        username: ${{ secrets.artifactory-username }}
-        password: ${{ secrets.artifactory-token }}
+        username: ${{ secrets.ARTIFACTORY_ALGOL60_USERNAME }}
+        password: ${{ secrets.ARTIFACTORY_ALGOL60_TOKEN }}
 
     #
     # Build, scan, push, and sign container image
@@ -186,16 +295,16 @@ jobs:
         echo ".version: $DOT_VERSION"
         echo "SEMVER: $SEMVER"
 
-        echo "::set-output name=stable-string::$STABLE_STRING"
-        echo "::set-output name=repository::$REPOSITORY"
-        echo "::set-output name=tag::$TAG"
-        echo "::set-output name=image::$IMAGE"
-        echo "::set-output name=dot-version::$DOT_VERSION"
-        echo "::set-output name=semver::$SEMVER"
+        echo "stable-string=$STABLE_STRING" >> $GITHUB_OUTPUT
+        echo "repository=$REPOSITORY" >> $GITHUB_OUTPUT
+        echo "tag=$TAG" >> $GITHUB_OUTPUT
+        echo "image=$IMAGE" >> $GITHUB_OUTPUT
+        echo "dot-version=$DOT_VERSION" >> $GITHUB_OUTPUT
+        echo "semver=$SEMVER" >> $GITHUB_OUTPUT
 
     - name: Docker metadata
       id: meta
-      uses: docker/metadata-action@v3
+      uses: docker/metadata-action@v4
       with:
         images: ${{ steps.image-meta.outputs.repository }}
         labels: |
@@ -209,7 +318,7 @@ jobs:
         # Note, the {{major}}, {{major}}.{{minor}} patterns only work on git tags
 
     - name: Build image
-      uses: docker/build-push-action@v2
+      uses: docker/build-push-action@v3
       id: docker-build
       with:
         context: ${{ inputs.docker-build-context }}
@@ -231,7 +340,7 @@ jobs:
       # continue-on-error: ${{ fromJSON(inputs.snyk-continue-on-error) }}
       # continue-on-error: ${{ inputs.snyk-continue-on-error == 'true' }}
       env:
-        SNYK_TOKEN: ${{ secrets.snyk-token }}
+        SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
       with:
         image: ${{ steps.image-meta.outputs.image }}
         args: --severity-threshold=${{ inputs.snyk-severity }} --skip-unresolved=true
@@ -261,12 +370,12 @@ jobs:
     - name: Sign an image in artifactory
       uses: Cray-HPE/.github/actions/csm-sign-image@v2-csm-sign-image
       with:
-        cosign-gcp-project-id: ${{ secrets.cosign-gcp-project-id }}
-        cosign-gcp-sa-key: ${{ secrets.cosign-gcp-sa-key }}
-        cosign-key: ${{ secrets.cosign-key }}
+        cosign-gcp-project-id: ${{ secrets.COSIGN_GCP_PROJECT_ID }}
+        cosign-gcp-sa-key: ${{ secrets.COSIGN_GCP_SA_KEY }}
+        cosign-key: ${{ secrets.COSIGN_KEY }}
         registry: ${{ inputs.docker-registry }}
-        registry-username: ${{ secrets.artifactory-username }}
-        registry-password: ${{ secrets.artifactory-token }}
+        registry-username: ${{ secrets.ARTIFACTORY_ALGOL60_USERNAME }}
+        registry-password: ${{ secrets.ARTIFACTORY_ALGOL60_TOKEN }}
         github-sha: ${{ github.sha }}
         image: ${{ steps.image-meta.outputs.image }}
 
@@ -274,12 +383,12 @@ jobs:
       uses: Cray-HPE/.github/actions/csm-generate-attach-sign-sbom@v1-csm-generate-attach-sign-sbom
       id: sbom
       with:
-        cosign-gcp-project-id: ${{ secrets.cosign-gcp-project-id }}
-        cosign-gcp-sa-key: ${{ secrets.cosign-gcp-sa-key }}
-        cosign-key: ${{ secrets.cosign-key }}
+        cosign-gcp-project-id: ${{ secrets.COSIGN_GCP_PROJECT_ID }}
+        cosign-gcp-sa-key: ${{ secrets.COSIGN_GCP_SA_KEY }}
+        cosign-key: ${{ secrets.COSIGN_KEY }}
         registry: ${{ inputs.docker-registry }}
-        registry-username: ${{ secrets.artifactory-username }}
-        registry-password: ${{ secrets.artifactory-token }}
+        registry-username: ${{ secrets.ARTIFACTORY_ALGOL60_USERNAME }}
+        registry-password: ${{ secrets.ARTIFACTORY_ALGOL60_TOKEN }}
         github-sha: ${{ github.sha }}
         image: ${{ steps.image-meta.outputs.image }}
 
@@ -294,6 +403,44 @@ jobs:
         done
         echo "Download SBOM: cosign download sbom $IMAGE > container_image.spdx"
 
+    - name: Job summary prep
+      shell: bash
+      env:
+        JOB_SUMMARY_TEMPLATE: ${{ inputs.job-summary-template }}
+        DOCKER_META_JSON: ${{ steps.meta.outputs.json }}
+      run: |
+        mkdir -p ./temp
+
+        # Write out the job summary template to a file
+        printenv JOB_SUMMARY_TEMPLATE > ./temp/job_summary_template.md
+
+        # Convert the output of the docker meta action to yaml to make it work easier with the render-template action.
+        printenv DOCKER_META_JSON | yq '{"dockerMeta": .}' -P > ./temp/job_summary_vars.yaml
+
+
+    - name: Render Job summary
+      id: template
+      uses: chuhlomin/render-template@v1.6
+      with:
+        template: ./temp/job_summary_template.md
+        # Note the vars below cannot have dashes '-' in them
+        vars: |
+            image: ${{ steps.image-meta.outputs.image }}
+            imageTag: ${{ steps.image-meta.outputs.tag }}
+            imageRepository: ${{ steps.image-meta.outputs.repository }} 
+            imageName: ${{ inputs.image-name }}
+            stableString: ${{ steps.image-meta.outputs.stable-string  }}
+
+            PRHeadSha: ${{ github.event.pull_request.head.sha }}
+            isPullRequest: ${{ github.event_name == 'pull_request' }}
+        vars_path: ./temp/job_summary_vars.yaml
+        result_path: ./temp/job_summary.md
+
+    - name: Set job summary
+      shell: bash
+      run: |
+        cat ./temp/job_summary.md >> $GITHUB_STEP_SUMMARY
+
   update-pr-with-artifacts:
     name: Update PR comment with artifacts
     runs-on: ${{ inputs.runs-on }}
@@ -301,16 +448,16 @@ jobs:
     needs:
       - build_and_release
     steps:
-      - name: Checkout repo
-        uses: actions/checkout@v2
-      
-      - name: Create comment vars
-        id: comment-vars
+      - name: PR comment prep
+        shell: bash
+        env:
+          PR_COMMENT_TEMPLATE: ${{ inputs.pr-comment-template }}
         run: |
-          echo "::set-output name=repo_name::$(echo "${GITHUB_ACTOR}_${GITHUB_REPOSITORY}_${GITHUB_REF_NAME}" | sed 's|/|_|g')"
-
+          # Write out the job summary template to a file
+          printenv PR_COMMENT_TEMPLATE > ./pr_comment_template.md
+      
       - name: Find Comment
-        uses: peter-evans/find-comment@v1
+        uses: peter-evans/find-comment@v2
         id: fc
         with:
           issue-number: ${{ github.event.pull_request.number }}
@@ -319,10 +466,9 @@ jobs:
 
       - name: Render template
         id: template
-        uses: chuhlomin/render-template@v1
+        uses: chuhlomin/render-template@v1.6
         with:
-          # It is expected the that the build-image-comment-template.md is present in the application repo, not this one.
-          template: ${{ inputs.pr-comment-template-path }}
+          template: ./pr_comment_template.md
           # Note the vars below cannot have dashes '-' in them
           vars: |
             image: ${{ needs.build_and_release.outputs.image }}
@@ -331,10 +477,9 @@ jobs:
             imageName: ${{ inputs.image-name }}
             stableString: ${{ needs.build_and_release.outputs.stable-string }}
             PRHeadSha: ${{ github.event.pull_request.head.sha }}
-
       - name: Create comment
         if: steps.fc.outputs.comment-id == ''
-        uses: peter-evans/create-or-update-comment@v1
+        uses: peter-evans/create-or-update-comment@v2
         with:
           issue-number: ${{ github.event.pull_request.number }}
           body: ${{ steps.template.outputs.result }}
@@ -342,7 +487,7 @@ jobs:
 
       - name: Update comment
         if: steps.fc.outputs.comment-id != ''
-        uses: peter-evans/create-or-update-comment@v1
+        uses: peter-evans/create-or-update-comment@v2
         with:
           comment-id: ${{ steps.fc.outputs.comment-id }}
           body: ${{ steps.template.outputs.result }}
