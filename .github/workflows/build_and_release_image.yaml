@@ -34,6 +34,11 @@ on:
         type: string
         default: artifactory.algol60.net
         required: false
+      artifactory-repo:
+        description: Repository in Artifactory to publish Docker images to.
+        type: string
+        required: false
+        default: csm-docker
       image-name:
         description: Container image name. For example, cray-firmware-action
         type: string
@@ -97,7 +102,7 @@ on:
         required: false
         default: |
           <!-- This file is templated with https://pkg.go.dev/html/template -->
-          👋  Hey! Here is the image we built for you ([Artifactory Link](https://artifactory.algol60.net/ui/repos/tree/General/csm-docker%2F{{ .stableString }}%2F{{ .imageName }}%2F{{ .imageTag }})):
+          👋  Hey! Here is the image we built for you ([Artifactory Link](https://artifactory.algol60.net/ui/repos/tree/General/{{.artifactoryRepo}}%2F{{ .stableString }}%2F{{ .imageName }}%2F{{ .imageTag }})):
 
           ```bash
           {{ .image }}
@@ -159,7 +164,7 @@ on:
         type: string
         default: |
           <!-- This file is templated with https://pkg.go.dev/html/template -->
-          👋  Hey! Here is the image we built for you ([Artifactory Link](https://artifactory.algol60.net/ui/repos/tree/General/csm-docker%2F{{ .stableString }}%2F{{ .imageName }}%2F{{ .imageTag }})):
+          👋  Hey! Here is the image we built for you ([Artifactory Link](https://artifactory.algol60.net/ui/repos/tree/General/{{.artifactoryRepo}}%2F{{ .stableString }}%2F{{ .imageName }}%2F{{ .imageTag }})):
 
           | Image | Software Bill of Materials |
           | ----- | -------------------------- |
@@ -277,7 +282,7 @@ jobs:
       run: |
         # Retrieve the version from the .version file, and append the build metadata to it.
         STABLE_STRING=${{ fromJSON(steps.build-metadata.outputs.is-stable) && 'stable' || 'unstable' }}
-        REPOSITORY=${{ inputs.docker-registry }}/csm-docker/$STABLE_STRING/${{ inputs.image-name }}
+        REPOSITORY=${{ inputs.docker-registry }}/${{ inputs.artifactory-repo }}/$STABLE_STRING/${{ inputs.image-name }}
         DOT_VERSION=$(cat .version)
         TAG=$DOT_VERSION${{ steps.build-metadata.outputs.docker }}
         IMAGE=$REPOSITORY:$TAG
@@ -425,6 +430,7 @@ jobs:
         template: ./temp/job_summary_template.md
         # Note the vars below cannot have dashes '-' in them
         vars: |
+            artifactoryRepo: ${{ inputs.artifactory-repo }}
             image: ${{ steps.image-meta.outputs.image }}
             imageTag: ${{ steps.image-meta.outputs.tag }}
             imageRepository: ${{ steps.image-meta.outputs.repository }} 
@@ -471,6 +477,7 @@ jobs:
           template: ./pr_comment_template.md
           # Note the vars below cannot have dashes '-' in them
           vars: |
+            artifactoryRepo: ${{ inputs.artifactory-repo }}
             image: ${{ needs.build_and_release.outputs.image }}
             imageTag: ${{ needs.build_and_release.outputs.image-tag }}
             imageRepository: ${{ needs.build_and_release.outputs.image-repository }} 

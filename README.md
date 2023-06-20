@@ -47,6 +47,7 @@ Repository requirements:
 | ---------------------- | --------- | -------------- | ------------------------- | -----------
 | `runs-on`              | `string`  | Optional       | `ubuntu-latest`           | The type of machine to run the job on.
 | `image-name`           | `string`  | Required       |                           | Container image name. For example, cray-firmware-action
+| `artifactory-repo`     | `string`  | Optional       | `csm-docker`              | Artifactory repository to publish to.
 | `docker-registry`      | `string`  | Optional       | `artifactory.algol60.net` | Registry to publish container images to.
 | `docker-build-context` | `string`  | Optional       | `.`                       | Build's context is the set of files located in the specified PATH.
 | `docker-build-file`    | `string`  | Optional       | `""`                      | Path to the Dockerfile. If set to the empty string it will default to `{docker-build-context}/Dockerfile`.
@@ -110,6 +111,7 @@ The PR comment Markdown template is expected to exist at `.github/build-image-co
 The following table shows what template variables are currently exposed by this job when a comment template is rendered:
 | Variable          | Example                                                                                       |
 | ----------------- | --------------------------------------------------------------------------------------------- |
+| `artifactoryRepo` | `csm-docker`                                                                                  |
 | `image`           | `artifactory.algol60.net/csm-docker/unstable/cray-power-control:0.0.1-20220204191303.a2980b2` |
 | `imageTag`        | `0.0.1-20220204191303.a2980b2`                                                                |
 | `imageRepository` | `artifactory.algol60.net/csm-docker/stable/cray-power-control`                                | 
