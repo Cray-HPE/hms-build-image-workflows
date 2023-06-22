@@ -257,12 +257,13 @@ jobs:
     - name: Install self-hosted runner dependencies
       shell: bash
       run: |
-        sudo add-apt-repository -y ppa:rmescandon/yq
-        sudo apt-get update
-        sudo apt-get install -y \
-          yq
-        
-        yq --version
+          #add-apt-repository -y ppa:rmescandon/yq
+          #apt-get update
+          #apt-get install -y \
+          #  yq
+          wget https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64 -O /usr/bin/yq &&\
+            chmod +x /usr/bin/yq
+          yq --version
 
     - name: Set up QEMU
       uses: docker/setup-qemu-action@v2
@@ -468,10 +469,14 @@ jobs:
       - name: Install self-hosted runner dependencies
         shell: bash
         run: |
-          add-apt-repository -y ppa:rmescandon/yq
-          apt-get update
-          apt-get install -y \
-            yq
+          #add-apt-repository -y ppa:rmescandon/yq
+          #apt-get update
+          #apt-get install -y \
+          #  yq
+          wget https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64 -O /usr/bin/yq &&\
+            chmod +x /usr/bin/yq
+          yq --version
+
         if: ${{ inputs.runs-on == 'self-hosted' }}
             
       - name: PR comment prep
