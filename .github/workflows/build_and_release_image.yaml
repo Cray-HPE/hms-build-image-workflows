@@ -262,6 +262,7 @@ jobs:
           sudo chmod +x /usr/bin/yq
 
           yq --version
+      if: ${{ inputs.runs-on == 'self-hosted' }}
 
     - name: Set up QEMU
       uses: docker/setup-qemu-action@v2
@@ -471,7 +472,6 @@ jobs:
           sudo mv /tmp/yq /usr/bin/yq
           sudo chmod +x /usr/bin/yq
           yq --version
-
         if: ${{ inputs.runs-on == 'self-hosted' }}
             
       - name: PR comment prep
