@@ -48,6 +48,14 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Install self-hosted runner dependencies
+        shell: bash
+        run: |
+          apt-get update
+          apt-get install -y \
+            docker-compose
+        if: ${{ inputs.runs-on == 'self-hosted' }}
+
       - name: Login to algol60 Container Registry
         uses: docker/login-action@v2
         with:

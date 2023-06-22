@@ -55,6 +55,14 @@ jobs:
           username: ${{ secrets.ARTIFACTORY_ALGOL60_READONLY_USERNAME }}
           password: ${{ secrets.ARTIFACTORY_ALGOL60_READONLY_TOKEN }}
 
+      - name: Install self-hosted runner dependencies
+        shell: bash
+        run: |
+          apt-get update
+          apt-get install -y \
+            docker-compose
+        if: ${{ inputs.runs-on == 'self-hosted' }}
+
       - name: Run CT Test
         shell: bash
         run: |
