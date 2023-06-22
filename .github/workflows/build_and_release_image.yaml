@@ -253,6 +253,17 @@ jobs:
       uses: actions/checkout@v3
       with:
         fetch-depth: 0
+
+    - name: Install self-hosted runner dependencies
+      shell: bash
+      run: |
+          wget https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64 -O /tmp/yq
+          sudo mv /tmp/yq /usr/bin/yq
+          sudo chmod +x /usr/bin/yq
+
+          yq --version
+      if: ${{ inputs.runs-on == 'self-hosted' }}
+
     - name: Set up QEMU
       uses: docker/setup-qemu-action@v2
 
@@ -420,7 +431,7 @@ jobs:
         printenv JOB_SUMMARY_TEMPLATE > ./temp/job_summary_template.md
 
         # Convert the output of the docker meta action to yaml to make it work easier with the render-template action.
-        printenv DOCKER_META_JSON | yq '{"dockerMeta": .}' -P > ./temp/job_summary_vars.yaml
+        printenv DOCKER_META_JSON | yq '{ "dockerMeta": . }' -P > ./temp/job_summary_vars.yaml
 
 
     - name: Render Job summary
@@ -454,6 +465,15 @@ jobs:
     needs:
       - build_and_release
     steps:
+      - name: Install self-hosted runner dependencies
+        shell: bash
+        run: |
+          wget https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64 -O /tmp/yq
+          sudo mv /tmp/yq /usr/bin/yq
+          sudo chmod +x /usr/bin/yq
+          yq --version
+        if: ${{ inputs.runs-on == 'self-hosted' }}
+            
       - name: PR comment prep
         shell: bash
         env:
