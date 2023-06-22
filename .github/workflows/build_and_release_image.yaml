@@ -261,6 +261,8 @@ jobs:
         sudo apt-get update
         sudo apt-get install -y \
           yq
+        
+        yq --version
 
     - name: Set up QEMU
       uses: docker/setup-qemu-action@v2
