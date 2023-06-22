@@ -431,7 +431,7 @@ jobs:
         printenv JOB_SUMMARY_TEMPLATE > ./temp/job_summary_template.md
 
         # Convert the output of the docker meta action to yaml to make it work easier with the render-template action.
-        printenv DOCKER_META_JSON | yq '{"dockerMeta": .}' -P > ./temp/job_summary_vars.yaml
+        printenv DOCKER_META_JSON | yq '{ "dockerMeta": . }' -P > ./temp/job_summary_vars.yaml
 
 
     - name: Render Job summary
