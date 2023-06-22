@@ -257,10 +257,6 @@ jobs:
     - name: Install self-hosted runner dependencies
       shell: bash
       run: |
-          #add-apt-repository -y ppa:rmescandon/yq
-          #apt-get update
-          #apt-get install -y \
-          #  yq
           wget https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64 -O /tmp/yq
           sudo mv /tmp/yq /usr/bin/yq
           sudo chmod +x /usr/bin/yq
@@ -471,10 +467,6 @@ jobs:
       - name: Install self-hosted runner dependencies
         shell: bash
         run: |
-          #add-apt-repository -y ppa:rmescandon/yq
-          #apt-get update
-          #apt-get install -y \
-          #  yq
           wget https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64 -O /tmp/yq
           sudo mv /tmp/yq /usr/bin/yq
           sudo chmod +x /usr/bin/yq
