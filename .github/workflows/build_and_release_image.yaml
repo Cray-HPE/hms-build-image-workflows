@@ -261,8 +261,10 @@ jobs:
           #apt-get update
           #apt-get install -y \
           #  yq
-          wget https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64 -O /usr/bin/yq &&\
-            chmod +x /usr/bin/yq
+          wget https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64 -O /tmp/yq
+          sudo mv /tmp/yq /usr/bin/yq
+          sudo chmod +x /usr/bin/yq
+
           yq --version
 
     - name: Set up QEMU
@@ -473,8 +475,9 @@ jobs:
           #apt-get update
           #apt-get install -y \
           #  yq
-          wget https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64 -O /usr/bin/yq &&\
-            chmod +x /usr/bin/yq
+          wget https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64 -O /tmp/yq
+          sudo mv /tmp/yq /usr/bin/yq
+          sudo chmod +x /usr/bin/yq
           yq --version
 
         if: ${{ inputs.runs-on == 'self-hosted' }}
