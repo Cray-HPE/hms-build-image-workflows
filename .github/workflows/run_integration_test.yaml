@@ -51,9 +51,20 @@ jobs:
       - name: Install self-hosted runner dependencies
         shell: bash
         run: |
+          # Install docker compose v1
           sudo apt-get update
           sudo apt-get install -y \
             docker-compose
+
+          docker-compose --version
+          
+          # Install docker compose v2
+          wget https://github.com/docker/compose/releases/download/v2.19.0/docker-compose-darwin-x86_64 -O /tmp/docker-compose
+          sudo mkdir -p /usr/local/lib/docker/cli-plugins
+          sudo mv /tmp/docker-compose /usr/local/lib/docker/cli-plugins/docker-compose
+          sudo chmod +x /usr/local/lib/docker/cli-plugins/docker-compose
+
+          docker compose version
         if: ${{ inputs.runs-on == 'self-hosted' }}
 
       - name: Login to algol60 Container Registry
