@@ -1,6 +1,6 @@
 # MIT License
 
-# (C) Copyright 2022,2024 Hewlett Packard Enterprise Development LP
+# (C) Copyright 2022,2024-2025 Hewlett Packard Enterprise Development LP
 
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -65,7 +65,7 @@ on:
           Only report vulnerabilities of provided level or higher.
           Choose from: low, medium, high, or critical
         type: string
-        default: high
+        default: critical
         required: false
 
       # TODO It doesn't look like continue-on-error can be templated
