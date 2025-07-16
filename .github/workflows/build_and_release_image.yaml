@@ -250,7 +250,7 @@ jobs:
     # Setup build environment
     #
     - name: Checkout
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
       with:
         fetch-depth: 0
 
@@ -350,17 +350,24 @@ jobs:
       run: docker images
 
     - name: Run Snyk to check Docker images for vulnerabilities
-      uses: snyk/actions/docker@master
-      # TODO Revisit out how we want to handle failing synk scans. I like the idea of snyk scan failing a unstable build as that will force us to deal with it.
-      # TODO It doesn't look like continue-on-error can be templated
-      # continue-on-error: ${{ !fromJSON(steps.build-metadata.outputs.is-stable) }}  # If stable build force build failure, for unstable push on.
-      # continue-on-error: ${{ fromJSON(inputs.snyk-continue-on-error) }}
-      # continue-on-error: ${{ inputs.snyk-continue-on-error == 'true' }}
+      # As of Jul 16 2025, latest version of snyk/snyk image, hardcoded in https://github.com/snyk/actions/blob/master/docker/action.yml#L23
+      # has authentication issues. To overcome that, will refer to older version of snyk/snyk docker image instead (see below).
+      # uses: snyk/actions/docker@master
+      # # TODO Revisit out how we want to handle failing synk scans. I like the idea of snyk scan failing a unstable build as that will force us to deal with it.
+      # # TODO It doesn't look like continue-on-error can be templated
+      # # continue-on-error: ${{ !fromJSON(steps.build-metadata.outputs.is-stable) }}  # If stable build force build failure, for unstable push on.
+      # # continue-on-error: ${{ fromJSON(inputs.snyk-continue-on-error) }}
+      # # continue-on-error: ${{ inputs.snyk-continue-on-error == 'true' }}
+      # env:
+      #   SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+      # with:
+      #   image: ${{ steps.image-meta.outputs.image }}
+      #   args: --severity-threshold=${{ inputs.snyk-severity }} --skip-unresolved=true
+      uses: "docker://snyk/snyk:docker-19.03"
       env:
         SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
       with:
-        image: ${{ steps.image-meta.outputs.image }}
-        args: --severity-threshold=${{ inputs.snyk-severity }} --skip-unresolved=true
+        args: "snyk test --severity-threshold=${{ inputs.snyk-severity }} --skip-unresolved=true --docker ${{ steps.image-meta.outputs.image }}"
 
     # TODO need a policy on how to use Trivy results
     - name: Run Trivy vulnerability scanner 
