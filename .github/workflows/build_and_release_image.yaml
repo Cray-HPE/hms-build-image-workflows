@@ -326,6 +326,7 @@ jobs:
         labels: |
           org.opencontainers.image.vendor=Hewlett Packard Enterprise Development LP
           workflowRef=${{ github.workflow_ref }}
+          workflowRef.${{ steps.image-meta.outputs.image }}=${{ github.workflow_ref }}
         flavor: |
           latest=${{ inputs.enable-latest-tag }}
         tags: |
