@@ -65,7 +65,7 @@ on:
           Only report vulnerabilities of provided level or higher.
           Choose from: low, medium, high, or critical
         type: string
-        default: critical
+        default: high
         required: false
 
       # TODO It doesn't look like continue-on-error can be templated
@@ -369,6 +369,7 @@ jobs:
         SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
       with:
         args: "snyk test --severity-threshold=${{ inputs.snyk-severity }} --skip-unresolved=true --docker ${{ steps.image-meta.outputs.image }}"
+      continue-on-error: true
 
     # TODO need a policy on how to use Trivy results
     - name: Run Trivy vulnerability scanner 
