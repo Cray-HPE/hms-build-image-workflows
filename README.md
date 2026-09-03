@@ -87,13 +87,13 @@ The build and release job is composed of various 3rd party and internally develo
   - [Cray-HPE/.github/actions/csm-generate-attach-sign-sbom@v1.0-csm-generate-attach-sign-sbom](https://github.com/Cray-HPE/.github/tree/main/actions/csm-generate-attach-sign-sbom)
 
 - 3rd party Github Actions:
-  - [actions/checkout@v3](https://github.com/actions/checkout/tree/v3)
+  - [actions/checkout@v6](https://github.com/actions/checkout/tree/v6)
   - [aquasecurity/trivy-action@master](https://github.com/aquasecurity/trivy-action)
-  - [docker/build-push-action@v3](https://github.com/docker/build-push-action/tree/v3)
-  - [docker/login-action@v2](https://github.com/docker/login-action/tree/v2)
-  - [docker/metadata-action@v4](https://github.com/docker/metadata-action/tree/v4)
-  - [docker/setup-buildx-action@v2](https://github.com/docker/setup-buildx-action/tree/v2)
-  - [docker/setup-qemu-action@v2](https://github.com/docker/setup-qemu-action/tree/v2)
+  - [docker/build-push-action@v6](https://github.com/docker/build-push-action/tree/v6)
+  - [docker/login-action@v3](https://github.com/docker/login-action/tree/v3)
+  - [docker/metadata-action@v5](https://github.com/docker/metadata-action/tree/v5)
+  - [docker/setup-buildx-action@v3](https://github.com/docker/setup-buildx-action/tree/v3)
+  - [docker/setup-qemu-action@v3](https://github.com/docker/setup-qemu-action/tree/v3)
   - [snyk/actions/docker@master](https://github.com/snyk/actions/tree/master/docker)
 
 ### Update PR with comment job
@@ -122,7 +122,7 @@ The following table shows what template variables are currently exposed by this 
 
 The update PR with comment job is composed of mostly 3rd part Github Actions
 - 3rd party Github Actions:
-  - [actions/checkout@v2](https://github.com/actions/checkout/tree/v2)
+  - [actions/checkout@v6](https://github.com/actions/checkout/tree/v6)
   - [chuhlomin/render-template@v1.2](https://github.com/chuhlomin/render-template/tree/v1.2)
   - [peter-evans/find-comment@v1](https://github.com/peter-evans/find-comment/tree/v1)
   - [peter-evans/create-or-update-comment@v1](https://github.com/peter-evans/create-or-update-comment/tree/v1)
@@ -199,7 +199,7 @@ Requirements:
 
 The update PR with comment job is composed of mostly 3rd party Github Actions
 - 3rd party Github Actions:
-  - [actions/checkout@v3](https://github.com/actions/checkout/tree/v3)
+  - [actions/checkout@v6](https://github.com/actions/checkout/tree/v6)
 
 ### Workflow inputs
 | Name      | Data Type | Required Field | Default value   | Description
@@ -244,7 +244,7 @@ Requirements:
 
 The update PR with comment job is composed of mostly 3rd part Github Actions
 - 3rd party Github Actions:
-  - [actions/checkout@v3](https://github.com/actions/checkout/tree/v3)
+  - [actions/checkout@v6](https://github.com/actions/checkout/tree/v6)
 
 ### Workflow inputs
 | Name      | Data Type | Required Field | Default value   | Description
@@ -289,7 +289,7 @@ Requirements:
 
 The update PR with comment job is composed of mostly 3rd party Github Actions
 - 3rd party Github Actions:
-  - [actions/checkout@v3](https://github.com/actions/checkout/tree/v3)
+  - [actions/checkout@v6](https://github.com/actions/checkout/tree/v6)
 
 ### Workflow inputs
 | Name      | Data Type | Required Field | Default value   | Description
